@@ -1,8 +1,3 @@
-Below is a **clean, production-oriented README** for **HookRelay (MVP)**, written so you can directly start **planning, designing APIs, and assigning responsibilities**.
-This README assumes **at-least-once delivery**, async processing, and a DB-centric dispatcher.
-
----
-
 # HookRelay — MVP README
 
 ## Overview
