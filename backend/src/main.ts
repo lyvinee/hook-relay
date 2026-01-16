@@ -16,7 +16,15 @@ async function bootstrap() {
   app.useGlobalFilters(new ZodValidationFilter());
 
   const doc = new DocumentBuilder()
-    .addSecurityRequirements("Bearer", ["jwt"])
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+      "access-token",
+    )
+    .addSecurityRequirements("access-token")
     .setTitle("Hook Relay API")
     .setDescription("Hook Relay API")
     .setVersion("1.0")

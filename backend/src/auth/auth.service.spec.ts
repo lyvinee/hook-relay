@@ -6,14 +6,19 @@ import { EnvDto } from "@/env/dto/envDto";
 import { UnauthorizedException, InternalServerErrorException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 
+import { JwtService } from "@nestjs/jwt";
+
 const mockDb = {
   query: {
     users: { findFirst: jest.fn() },
     refreshTokenSessions: { findFirst: jest.fn() },
+    authSessions: { findFirst: jest.fn() },
   },
   transaction: jest.fn(),
   update: jest.fn(),
   insert: jest.fn(),
+  set: jest.fn(),
+  where: jest.fn(),
 };
 
 const mockPasswordHasher = {
@@ -29,6 +34,10 @@ const mockConfig = {
   JWT_EXPIRY: "1h",
 };
 
+const mockJwtService = {
+  sign: jest.fn(),
+};
+
 describe("AuthService", () => {
   let service: AuthService;
 
@@ -40,6 +49,7 @@ describe("AuthService", () => {
         { provide: DRIZZLE, useValue: mockDb },
         { provide: PasswordHasher, useValue: mockPasswordHasher },
         { provide: EnvDto, useValue: mockConfig },
+        { provide: JwtService, useValue: mockJwtService },
       ],
     }).compile();
 
@@ -90,6 +100,7 @@ describe("AuthService", () => {
       mockPasswordHasher.createToken.mockReturnValue("new_refresh_token");
       mockPasswordHasher.hash.mockResolvedValue("hashed_token");
       mockPasswordHasher.lookupHash.mockReturnValue("lookup_hash");
+      mockJwtService.sign.mockReturnValue("mocked_access_token");
 
       // Mock transaction flow
       mockDb.transaction.mockImplementation(async (cb) => {
@@ -105,7 +116,7 @@ describe("AuthService", () => {
 
       const result = await service.login("test@example.com", "pass");
 
-      expect(result).toHaveProperty("accessToken");
+      expect(result).toHaveProperty("accessToken", "mocked_access_token");
       expect(result).toHaveProperty("refreshToken", "new_refresh_token");
     });
   });
@@ -147,6 +158,46 @@ describe("AuthService", () => {
 
       const result = await service.refresh("valid_token");
       expect(result.refreshToken).toBe("new_token");
+    });
+  });
+  describe("validateSession", () => {
+    it("should return user details if session is valid", async () => {
+      mockDb.query.authSessions.findFirst.mockResolvedValue({
+        status: "active",
+        expiresAt: new Date(Date.now() + 10000),
+        user: { userId: "uid", role: "user", email: "test@example.com" }
+      });
+
+      const result = await service.validateSession("sid");
+      expect(result).toEqual({ userId: "uid", role: "user", email: "test@example.com" });
+    });
+
+    it("should throw if session not found", async () => {
+      mockDb.query.authSessions.findFirst.mockResolvedValue(null);
+      await expect(service.validateSession("sid")).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should throw if session is not active", async () => {
+      mockDb.query.authSessions.findFirst.mockResolvedValue({ status: "expired" });
+      await expect(service.validateSession("sid")).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should expire session and throw if time has passed", async () => {
+      mockDb.query.authSessions.findFirst.mockResolvedValue({
+        status: "active",
+        expiresAt: new Date(Date.now() - 1000), // Expired
+        authSessionId: "sid"
+      });
+
+      mockDb.update.mockReturnThis();
+      mockDb.set.mockReturnThis();
+      mockDb.where.mockResolvedValue({});
+
+      await expect(service.validateSession("sid")).rejects.toThrow(UnauthorizedException);
+
+      // Verify we called update to expire it
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.set).toHaveBeenCalledWith({ status: "expired" });
     });
   });
 });

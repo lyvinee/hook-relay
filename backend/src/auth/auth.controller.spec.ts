@@ -4,6 +4,7 @@ import { AuthService } from "./auth.service";
 import { EnvDto } from "@/env/dto/envDto";
 import { UnauthorizedException } from "@nestjs/common";
 import { Response, Request } from "express";
+import { JwtService } from "@nestjs/jwt";
 
 const mockAuthService = {
   login: jest.fn(),
@@ -15,6 +16,8 @@ const mockConfig = {
   AUTH_SESSION_VALIDITY_IN_SECONDS: 3600,
 };
 
+const mockJwtService = {};
+
 describe("AuthController", () => {
   let controller: AuthController;
 
@@ -25,6 +28,7 @@ describe("AuthController", () => {
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: EnvDto, useValue: mockConfig },
+        { provide: JwtService, useValue: mockJwtService },
       ],
     }).compile();
 
@@ -93,6 +97,16 @@ describe("AuthController", () => {
         sameSite: "strict",
         maxAge: 3600000,
       });
+    });
+  });
+
+  describe("me", () => {
+    it("should return user from request", async () => {
+      const user = { userId: "uid", role: "admin", email: "test@example.com" };
+      const req = { user } as any;
+
+      const result = await controller.me(req);
+      expect(result).toEqual(user);
     });
   });
 });

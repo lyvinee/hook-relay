@@ -1,12 +1,13 @@
 import { AuthService } from "@/auth/auth.service";
 import { LoginDto } from "@/auth/dto/loginBodyDto";
 import { LoginResponseDto } from "@/auth/dto/loginResponseDto";
-import { Body, Controller, Post, Res, UseInterceptors, Req, UnauthorizedException, Inject } from "@nestjs/common";
+import { Body, Controller, Post, Res, UseInterceptors, Req, UnauthorizedException, Inject, Get, UseGuards } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiBody } from "@nestjs/swagger";
 import { ZodResponse, ZodSerializerDto, ZodSerializerInterceptor } from "nestjs-zod";
 import { ValidationErrorResponse } from "@/common/dto/validation-error.dto";
 import type { Response, Request } from "express";
 import { EnvDto } from "@/env/dto/envDto";
+import { AuthGuard } from "@/common/guards/auth.guard";
 
 @Controller("auth")
 @UseInterceptors(ZodSerializerInterceptor)
@@ -61,5 +62,16 @@ export class AuthController {
     });
 
     return { accessToken: tokens.accessToken };
+  }
+
+  @Get("me")
+  @UseGuards(AuthGuard)
+  async me(@Req() req: Request) {
+    if (!req.user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+
+    return req.user;
   }
 }

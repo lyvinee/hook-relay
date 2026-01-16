@@ -11,7 +11,7 @@ import {
 import * as schema from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { PasswordHasher } from "@/password/passwordHasher.abstract";
-import jwt from "jsonwebtoken";
+import { JwtService } from "@nestjs/jwt";
 import { EnvDto } from "@/env/dto/envDto";
 
 @Injectable()
@@ -20,6 +20,7 @@ export class AuthService {
     @Inject(DRIZZLE) private readonly db: DbType,
     private readonly pwdHasher: PasswordHasher,
     @Inject() private readonly config: EnvDto,
+    private readonly jwtService: JwtService,
   ) { }
 
   async login(email: string, password: string): Promise<{ accessToken: string, refreshToken: string }> {
@@ -120,12 +121,38 @@ export class AuthService {
       return { authSessionId, refreshToken };
     });
 
-    const payload = { uId: userId };
-    const accessToken = jwt.sign(payload, this.config.JWT_SECRET, { expiresIn: this.config.JWT_EXPIRY });
+    const payload = { uId: userId, authSessionId: response.authSessionId };
+    const accessToken = this.jwtService.sign(payload);
 
     return {
       accessToken,
       refreshToken: response.refreshToken,
+    };
+  }
+  async validateSession(authSessionId: string): Promise<{ userId: string; role: string; email: string }> {
+    const session = await this.db.query.authSessions.findFirst({
+      where: eq(schema.authSessions.authSessionId, authSessionId),
+      with: {
+        user: true,
+      },
+    });
+
+    if (!session || session.status !== "active") {
+      throw new UnauthorizedException("Session invalid or expired");
+    }
+
+    if (new Date() > session.expiresAt) {
+      await this.db.update(schema.authSessions)
+        .set({ status: "expired" })
+        .where(eq(schema.authSessions.authSessionId, authSessionId));
+
+      throw new UnauthorizedException("Session expired");
+    }
+
+    return {
+      userId: session.user.userId,
+      role: session.user.role,
+      email: session.user.email,
     };
   }
 }
