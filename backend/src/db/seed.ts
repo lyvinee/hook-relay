@@ -111,7 +111,7 @@ async function main() {
       topicId: topic.topicId,
       eventPayload: { test: "data", timestamp: new Date().toISOString() },
       eventTimestamp: new Date(),
-      isActive: true,
+      webhookIdempotencyKey: Date.now().toString().concat("-" + Math.random().toString(36).substring(7)),
     }));
     await db.insert(schema.webhookEvents).values(eventsData);
 

@@ -12,6 +12,7 @@ import { NotificationModule } from './notification/notification.module';
 
 import { ClientsModule } from "./clients/clients.module";
 import { WebhooksModule } from "./webhooks/webhooks.module";
+import { WebhookEventsModule } from "./webhook-events/webhook-events.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     NotificationModule,
     ClientsModule,
     WebhooksModule,
+    WebhookEventsModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService, NotificationService],

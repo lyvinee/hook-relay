@@ -146,6 +146,7 @@ export const topics = pgTable("topics", {
 
 export const webhookEvents = pgTable("webhook_events", {
   webhookEventId: uuid("webhook_event_id").defaultRandom().primaryKey(),
+  webhookIdempotencyKey: varchar("webhook_idempotency_key", { length: 200 }).notNull().unique(),
   webhookId: uuid("webhook_id")
     .notNull()
     .references(() => webhooks.webhookId),
@@ -156,7 +157,6 @@ export const webhookEvents = pgTable("webhook_events", {
   eventTimestamp: timestamp("event_timestamp", {
     withTimezone: true,
   }).notNull(),
-  isActive: boolean("is_active").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()

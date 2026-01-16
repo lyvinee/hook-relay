@@ -28,9 +28,9 @@ async function bootstrap() {
     .setTitle("Hook Relay API")
     .setDescription("Hook Relay API")
     .setVersion("1.0")
-    .addTag("users")
-    .addTag("clients")
-    .addTag("webhooks")
+    .addTag("Clients")
+    .addTag("Webhooks")
+    .addTag("Webhook Events")
     .build();
 
   const docFactory = SwaggerModule.createDocument(app, doc);
