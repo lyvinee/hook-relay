@@ -130,7 +130,7 @@ export const webhooks = pgTable(
       .defaultNow()
       .$onUpdateFn(() => new Date()),
   },
-  (t) => [unique().on(t.clientId)],
+  (t) => [unique().on(t.clientId, t.targetUrl)],
 );
 
 export const topics = pgTable("topics", {

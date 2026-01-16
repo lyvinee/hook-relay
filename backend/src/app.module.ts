@@ -10,9 +10,21 @@ import { AuthModule } from './auth/auth.module';
 import { NotificationService } from './notification/notification.service';
 import { NotificationModule } from './notification/notification.module';
 
+import { ClientsModule } from "./clients/clients.module";
+import { WebhooksModule } from "./webhooks/webhooks.module";
+
 @Module({
-  imports: [DatabaseModule, EnvModule, UsersModule, PasswordModule, AuthModule, NotificationModule],
+  imports: [
+    DatabaseModule,
+    EnvModule,
+    UsersModule,
+    PasswordModule,
+    AuthModule,
+    NotificationModule,
+    ClientsModule,
+    WebhooksModule,
+  ],
   controllers: [AppController],
   providers: [AppService, DatabaseService, NotificationService],
 })
-export class AppModule {}
+export class AppModule { }

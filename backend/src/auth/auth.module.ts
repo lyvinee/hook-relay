@@ -8,7 +8,7 @@ import { EnvDto } from "@/env/dto/envDto";
 
 @Module({
   providers: [AuthService],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
   controllers: [AuthController],
   imports: [
     EnvModule,
