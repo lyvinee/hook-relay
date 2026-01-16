@@ -7,7 +7,10 @@ export const envSchema = z
     NODE_ENV: z.enum(["development", "production", "test"], {
       error: "NODE_ENV is required",
     }),
-    DATABASE_URL: z.string({ error: "DATABASE_URL is required" }),
+    JWT_SECRET: z.string({ error: "JWT_SECRET is required" }),
+    JWT_EXPIRY: z.coerce.number({ error: "JWT_EXPIRY is required" }),
+    AUTH_SESSION_VALIDITY_IN_SECONDS: z.coerce.number({ error: "AUTH_SESSION_VALIDITY_IN_SECONDS is required" }),
+    REFRESH_TOKEN_VALIDITY_IN_SECONDS: z.coerce.number({ error: "REFRESH_TOKEN_VALIDITY_IN_SECONDS is required" }),
   })
   .strip();
 
@@ -16,7 +19,10 @@ export type AppEnvConfig = z.infer<typeof envSchema>;
 export const saneDefaults: Partial<Record<keyof AppEnvConfig, string>> = {
   PORT: "5000",
   NODE_ENV: "development",
-  DATABASE_URL: process.env.DATABASE_URL,
+  JWT_EXPIRY: process.env.JWT_EXPIRY,
+  JWT_SECRET: process.env.JWT_SECRET,
+  AUTH_SESSION_VALIDITY_IN_SECONDS: process.env.AUTH_SESSION_VALIDITY_IN_SECONDS || (60 * 60 * 24 * 14).toString(),
+  REFRESH_TOKEN_VALIDITY_IN_SECONDS: process.env.REFRESH_TOKEN_VALIDITY_IN_SECONDS || (60 * 60 * 24 * 30).toString(),
 };
 
-export class EnvDto extends createZodDto(envSchema) {}
+export class EnvDto extends createZodDto(envSchema) { }

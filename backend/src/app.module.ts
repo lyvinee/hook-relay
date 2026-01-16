@@ -6,10 +6,13 @@ import { DatabaseService } from "./database/database.service";
 import { DatabaseModule } from "./database/database.module";
 import { EnvModule } from "./env/env.module";
 import { PasswordModule } from './password/password.module';
+import { AuthModule } from './auth/auth.module';
+import { NotificationService } from './notification/notification.service';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
-  imports: [DatabaseModule, EnvModule, UsersModule, PasswordModule],
+  imports: [DatabaseModule, EnvModule, UsersModule, PasswordModule, AuthModule, NotificationModule],
   controllers: [AppController],
-  providers: [AppService, DatabaseService],
+  providers: [AppService, DatabaseService, NotificationService],
 })
 export class AppModule {}

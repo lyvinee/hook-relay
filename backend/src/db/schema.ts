@@ -3,12 +3,34 @@ import { uuid } from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { varchar } from "drizzle-orm/pg-core";
-import { pgEnum } from "drizzle-orm/pg-core";
 import { pgTable } from "drizzle-orm/pg-core";
+import { pgEnum } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+
+export const createUpdateTimeStamps = {
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
+}
+
 
 export const userRole = pgEnum("user_role_type", ["user", "admin"]);
+export const signUpAttemptStatus = pgEnum("sign_up_attempt_status", [
+  "pending",
+  "expired",
+  "active"
+]);
+
+export const userStatus = pgEnum("user_status", [
+  "active",
+  "disabled",
+  "soft_deleted"
+]);
+
 export const authMethodType = pgEnum("auth_method_type", [
-  "email",
+  "password",
   "google",
   "github",
 ]);
@@ -19,16 +41,41 @@ export const webhookDeliveryStatus = pgEnum("webhook_delivery_status", [
   "dlq",
 ]);
 
+export const verificationChannel = pgEnum("verification_channel", [
+  "email",
+  "sms",
+]);
+
+export const verificationChallengeFlowType = pgEnum("verification_challenge_flow_type", [
+  "sign_up",
+  "forgot_password",
+]);
+
+export const authSessionStatus = pgEnum("auth_session_status", [
+  "active",
+  "expired",
+  "revoked",
+]);
+
 export const users = pgTable("users", {
   userId: uuid("user_id").defaultRandom().primaryKey(),
   role: userRole("role").notNull(),
-  email: varchar("email", { length: 200 }).notNull(),
-  isActive: boolean("is_active").default(false),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .$onUpdateFn(() => new Date()),
+  email: varchar("email", { length: 200 }).notNull().unique(),
+  status: userStatus("status").notNull(),
+  activatedAt: timestamp("activated_at", { withTimezone: true }),
+  ...createUpdateTimeStamps,
 });
+
+export const signupAttempts = pgTable("signup_attempts", {
+  signupAttemptId: uuid("signup_attempt_id").defaultRandom().primaryKey(),
+  email: varchar("email", { length: 200 }).notNull(),
+  emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  status: signUpAttemptStatus("status").notNull(),
+  provider: authMethodType("provider").notNull(),
+  ...createUpdateTimeStamps,
+})
+
 
 export const authMethods = pgTable(
   "auth_methods",
@@ -156,7 +203,7 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
   deliveryResponseStatus: integer("delivery_response_status")
     .notNull()
     .default(0),
-  isActive: boolean("is_active").default(false),
+  permanentlyFailedAt: timestamp("permanently_failed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
@@ -182,7 +229,6 @@ export const webhookDlq = pgTable("webhook_dlq", {
   deliveryResponseStatus: integer("delivery_response_status")
     .notNull()
     .default(0),
-  isActive: boolean("is_active").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
@@ -198,3 +244,136 @@ export const appConfig = pgTable("app_config", {
     () => new Date(),
   ),
 });
+
+export const verificationChallenges = pgTable(
+  "verification_challenges",
+  {
+    verificationChallengeId: uuid("verification_challenge_id")
+      .defaultRandom()
+      .primaryKey(),
+    flowType: verificationChallengeFlowType("flow_type").notNull(),
+    flowId: uuid("flow_id").notNull(),
+    channel: verificationChannel("channel").notNull(),
+    secretHash: varchar("secret_hash", { length: 400 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    ...createUpdateTimeStamps,
+  },
+  (t) => [
+    unique().on(t.flowType, t.flowId, t.channel),
+  ],
+);
+
+
+export const authSessions = pgTable("auth_sessions", {
+  authSessionId: uuid("auth_session_id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.userId),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  status: authSessionStatus("status").notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  ipHash: varchar("ip_hash", { length: 200 }),
+  userAgent: varchar("user_agent", { length: 200 }),
+  ...createUpdateTimeStamps,
+})
+
+export const refreshTokenSessions = pgTable("refresh_token_sessions", {
+  refreshTokenSessionId: uuid("refresh_token_session_id").defaultRandom().primaryKey(),
+  authSessionId: uuid("auth_session_id").notNull().references(() => authSessions.authSessionId),
+  tokenHash: varchar("token_hash", { length: 200 }).notNull(),
+  lookupHash: varchar("lookup_hash", { length: 200 }).notNull(),
+  rotatedAt: timestamp("rotated_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  ...createUpdateTimeStamps,
+})
+
+// ---------------------------------- RELATIONS
+
+
+export const usersRelations = relations(users, ({ many }) => ({
+  authMethods: many(authMethods),
+}));
+
+export const authMethodsRelations = relations(authMethods, ({ one }) => ({
+  user: one(users, {
+    fields: [authMethods.userId],
+    references: [users.userId],
+  }),
+}));
+
+export const clientsRelations = relations(clients, ({ many }) => ({
+  webhooks: many(webhooks),
+}));
+
+export const webhooksRelations = relations(webhooks, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [webhooks.clientId],
+    references: [clients.clientId],
+  }),
+  subscriptions: many(webhookSubscriptions),
+  events: many(webhookEvents),
+}));
+
+export const topicsRelations = relations(topics, ({ many }) => ({
+  subscriptions: many(webhookSubscriptions),
+  events: many(webhookEvents),
+}));
+
+export const webhookSubscriptionsRelations = relations(
+  webhookSubscriptions,
+  ({ one }) => ({
+    webhook: one(webhooks, {
+      fields: [webhookSubscriptions.webhookId],
+      references: [webhooks.webhookId],
+    }),
+    topic: one(topics, {
+      fields: [webhookSubscriptions.topicId],
+      references: [topics.topicId],
+    }),
+  }),
+);
+
+export const webhookEventsRelations = relations(webhookEvents, ({ one, many }) => ({
+  webhook: one(webhooks, {
+    fields: [webhookEvents.webhookId],
+    references: [webhooks.webhookId],
+  }),
+  topic: one(topics, {
+    fields: [webhookEvents.topicId],
+    references: [topics.topicId],
+  }),
+  deliveries: many(webhookDeliveries),
+}));
+
+export const webhookDeliveriesRelations = relations(
+  webhookDeliveries,
+  ({ one }) => ({
+    event: one(webhookEvents, {
+      fields: [webhookDeliveries.webhookEventId],
+      references: [webhookEvents.webhookEventId],
+    }),
+    dlq: one(webhookDlq),
+  }),
+);
+
+export const webhookDlqRelations = relations(webhookDlq, ({ one }) => ({
+  delivery: one(webhookDeliveries, {
+    fields: [webhookDlq.webhookDeliveryId],
+    references: [webhookDeliveries.webhookDeliveryId],
+  }),
+}));
+
+export const authSessionsRelations = relations(authSessions, ({ many, one }) => ({
+  user: one(users, {
+    fields: [authSessions.userId],
+    references: [users.userId],
+  }),
+  refreshTokenSessions: many(refreshTokenSessions),
+}))
+
+export const refreshTokenSessionsRelations = relations(refreshTokenSessions, ({ one }) => ({
+  authSession: one(authSessions, {
+    fields: [refreshTokenSessions.authSessionId],
+    references: [authSessions.authSessionId],
+  }),
+}))

@@ -39,7 +39,17 @@ import * as schema from "@/db/schema";
             console.warn("No active configs found in database.");
           }
 
-          return envSchema.parse(finalCfg);
+          const parsed = envSchema.parse(finalCfg);
+
+          await db.insert(schema.appConfig)
+            .values(
+              Object.entries(parsed)
+                .map(([key, value]) => ({ key, value: value.toString(), isActive: true })
+                )
+            ).onConflictDoNothing({ target: schema.appConfig.key });
+
+          return parsed;
+
         } catch (error) {
           console.error("Error fetching env from database, exiting...", error);
           process.exit(1);
@@ -47,5 +57,6 @@ import * as schema from "@/db/schema";
       },
     },
   ],
+  exports: [EnvDto],
 })
-export class EnvModule {}
+export class EnvModule { }

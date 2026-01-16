@@ -1,11 +1,15 @@
 import { Global, Module } from "@nestjs/common";
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "@/db/schema";
 import { sql } from "drizzle-orm";
 
 export const DRIZZLE = "DRIZZLE";
+
+export type DbType = NodePgDatabase<typeof schema> & {
+  $client: Pool;
+};
 
 @Global()
 @Module({

@@ -1,7 +1,8 @@
 import "dotenv/config";
 import drizzleSeed from "drizzle-seed";
-import * as schema from "@/db/schema";
+import * as schema from "./schema";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { hash } from "argon2";
 
 async function main() {
   const dbUrl = process.env.DATABASE_URL;
@@ -49,11 +50,13 @@ async function main() {
   const clients = await db.query.clients.findMany();
   const topics = await db.query.topics.findMany();
 
+  const pwdHash = await hash("Password@123")
+
   console.log("Seeding authMethods...");
   const authMethodsData = users.map((user) => ({
     userId: user.userId,
-    methodType: schema.authMethodType.enumValues[0], // 'email'
-    email: user.email,
+    methodType: schema.authMethodType.enumValues[0], // 'password'
+    secretHash: pwdHash,
     isPrimary: true,
     isVerified: true,
   }));
@@ -66,6 +69,7 @@ async function main() {
     clientId: client.clientId,
     endpointName: `Endpoint for ${client.name}`,
     targetUrl: `https://example.com/webhook/${client.slugName}`,
+    hmacSecret: "whsec_" + Math.random().toString(36).substring(7),
     isActive: true,
   }));
 
@@ -110,7 +114,36 @@ async function main() {
       isActive: true,
     }));
     await db.insert(schema.webhookEvents).values(eventsData);
+
+    console.log("Seeding webhook deliveries...");
+    const createdEvents = await db.query.webhookEvents.findMany();
+    if (createdEvents.length > 0) {
+      const deliveriesData = createdEvents.map((event) => ({
+        webhookEventId: event.webhookEventId,
+        deliveryPayload: event.eventPayload,
+        deliveryTimestamp: new Date(),
+        deliveryStatus: schema.webhookDeliveryStatus.enumValues[1], // 'success'
+        deliveryAttempts: 1,
+        deliveryResponseStatus: 200,
+        deliveryResponse: { status: "ok" },
+      }));
+      await db.insert(schema.webhookDeliveries).values(deliveriesData);
+    }
   }
+
+  console.log("Seeding app config...");
+  await db.insert(schema.appConfig).values([
+    {
+      key: "maintenance_mode",
+      value: { enabled: false },
+      isActive: true,
+    },
+    {
+      key: "feature_flags",
+      value: { new_dashboard: true },
+      isActive: true,
+    },
+  ]).onConflictDoNothing();
 }
 
 main()

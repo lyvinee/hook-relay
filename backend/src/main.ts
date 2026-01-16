@@ -3,8 +3,17 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { EnvDto } from "@/env/dto/envDto";
 
+import { ZodValidationPipe } from "nestjs-zod";
+
+import { ZodValidationFilter } from "@/common/filters/zod-validation.filter";
+
+import cookieParser from "cookie-parser";
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
+  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalFilters(new ZodValidationFilter());
 
   const doc = new DocumentBuilder()
     .addSecurityRequirements("Bearer", ["jwt"])
