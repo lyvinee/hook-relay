@@ -13,6 +13,9 @@ import { NotificationModule } from './notification/notification.module';
 import { ClientsModule } from "./clients/clients.module";
 import { WebhooksModule } from "./webhooks/webhooks.module";
 import { WebhookEventsModule } from "./webhook-events/webhook-events.module";
+import { BullModule } from '@nestjs/bullmq';
+import { JobsModule } from './jobs/jobs.module';
+import { WebhookDeliveryModule } from './webhook-delivery/webhook-delivery.module';
 
 @Module({
   imports: [
@@ -25,6 +28,14 @@ import { WebhookEventsModule } from "./webhook-events/webhook-events.module";
     ClientsModule,
     WebhooksModule,
     WebhookEventsModule,
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+      },
+    }),
+    JobsModule,
+    WebhookDeliveryModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService, NotificationService],

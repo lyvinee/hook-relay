@@ -16,6 +16,12 @@ export class AuthGuard implements CanActivate {
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        // FIXME: This is written to disable security for development/testing purposes. Remove this when moving to prod.
+        // const DISABLE_SECURITY = true;
+        // if (DISABLE_SECURITY) {
+        //     return true;
+        // }
+
         const request = context.switchToHttp().getRequest<Request>();
         const token = this.extractTokenFromHeader(request);
         if (!token) {

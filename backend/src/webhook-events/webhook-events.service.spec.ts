@@ -5,6 +5,7 @@ import { NotFoundException } from "@nestjs/common";
 import { CreateWebhookEventDto } from "./dto/create-webhook-event.dto";
 import { ListWebhookEventsDto } from "./dto/list-webhook-events.dto";
 import { sql } from "drizzle-orm";
+import { getQueueToken } from '@nestjs/bullmq';
 
 const mockDb = {
     query: {
@@ -19,6 +20,10 @@ const mockDb = {
     select: jest.fn(),
 };
 
+const mockQueue = {
+    add: jest.fn(),
+};
+
 describe("WebhookEventsService", () => {
     let service: WebhookEventsService;
 
@@ -28,7 +33,9 @@ describe("WebhookEventsService", () => {
             providers: [
                 WebhookEventsService,
                 { provide: DRIZZLE, useValue: mockDb },
+                { provide: getQueueToken('webhook-delivery'), useValue: mockQueue },
             ],
+
         }).compile();
 
         service = module.get<WebhookEventsService>(WebhookEventsService);
@@ -55,8 +62,17 @@ describe("WebhookEventsService", () => {
                 }),
             });
 
+            mockDb.query.webhooks.findFirst.mockResolvedValue({
+                retryPolicy: { maxRetries: 3 }
+            });
+
             const result = await service.create(createDto);
             expect(result).toEqual(createdEvent);
+            expect(mockQueue.add).toHaveBeenCalledWith(
+                'deliver-webhook',
+                { eventId: createdEvent.webhookEventId },
+                expect.objectContaining({ attempts: 3 })
+            );
         });
 
         it("should return existing event on duplicate key (idempotency)", async () => {

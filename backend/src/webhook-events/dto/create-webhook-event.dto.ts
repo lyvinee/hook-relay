@@ -2,8 +2,8 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 
 export const createWebhookEventSchema = z.object({
-    webhookId: z.string().uuid(),
-    topicId: z.string().uuid(),
+    webhookId: z.uuid(),
+    topicId: z.uuid(),
     eventPayload: z.record(z.string(), z.any()),
     webhookIdempotencyKey: z.string().min(1),
 });
