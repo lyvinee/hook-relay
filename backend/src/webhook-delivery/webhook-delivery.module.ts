@@ -4,6 +4,10 @@ import { HttpModule } from '@nestjs/axios';
 import { EnvModule } from '@/env/env.module';
 import { WebhookDeliveryProcessor } from './webhook-delivery.processor';
 
+import { WebhookDeliveriesController } from './webhook-delivery.controller';
+import { WebhookDeliveriesService } from './webhook-delivery.service';
+import { AuthModule } from '@/auth/auth.module';
+
 @Module({
     imports: [
         EnvModule,
@@ -11,8 +15,10 @@ import { WebhookDeliveryProcessor } from './webhook-delivery.processor';
         BullModule.registerQueue({
             name: 'webhook-delivery',
         }),
+        AuthModule
     ],
-    providers: [WebhookDeliveryProcessor],
-    exports: [BullModule],
+    controllers: [WebhookDeliveriesController],
+    providers: [WebhookDeliveryProcessor, WebhookDeliveriesService],
+    exports: [BullModule, WebhookDeliveriesService],
 })
 export class WebhookDeliveryModule { }

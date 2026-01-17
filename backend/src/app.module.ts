@@ -5,6 +5,7 @@ import { UsersModule } from "./users/users.module";
 import { DatabaseService } from "./database/database.service";
 import { DatabaseModule } from "./database/database.module";
 import { EnvModule } from "./env/env.module";
+import { EnvDto } from "./env/dto/envDto";
 import { PasswordModule } from './password/password.module';
 import { AuthModule } from './auth/auth.module';
 import { NotificationService } from './notification/notification.service';
@@ -16,6 +17,7 @@ import { WebhookEventsModule } from "./webhook-events/webhook-events.module";
 import { BullModule } from '@nestjs/bullmq';
 import { JobsModule } from './jobs/jobs.module';
 import { WebhookDeliveryModule } from './webhook-delivery/webhook-delivery.module';
+import { WebhookDlqModule } from './webhook-dlq/webhook-dlq.module';
 
 @Module({
   imports: [
@@ -28,14 +30,19 @@ import { WebhookDeliveryModule } from './webhook-delivery/webhook-delivery.modul
     ClientsModule,
     WebhooksModule,
     WebhookEventsModule,
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-      },
+    BullModule.forRootAsync({
+      imports: [EnvModule],
+      useFactory: async (env: EnvDto) => ({
+        connection: {
+          host: env.REDIS_HOST,
+          port: env.REDIS_PORT,
+        },
+      }),
+      inject: [EnvDto],
     }),
     JobsModule,
     WebhookDeliveryModule,
+    WebhookDlqModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService, NotificationService],
