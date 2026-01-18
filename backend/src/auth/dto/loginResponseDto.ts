@@ -1,10 +1,6 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
 
-export const loginResponseSchema = z
-  .object({
-    accessToken: z.string({ error: "token is required" }).describe("JWT access token"),
-  })
-  .strip();
-
-export class LoginResponseDto extends createZodDto(loginResponseSchema) { }
+export class LoginResponseDto {
+  @ApiProperty({ description: "JWT access token" })
+  accessToken: string;
+}

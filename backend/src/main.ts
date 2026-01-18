@@ -3,9 +3,9 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { EnvDto } from "@/env/dto/envDto";
 
-import { ZodValidationPipe } from "nestjs-zod";
+import { ValidationPipe } from "@nestjs/common";
 
-import { ZodValidationFilter } from "@/common/filters/zod-validation.filter";
+
 import { HttpExceptionFilter } from "@/common/filters/http-exception.filter";
 
 import cookieParser from "cookie-parser";
@@ -13,8 +13,8 @@ import cookieParser from "cookie-parser";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
-  app.useGlobalPipes(new ZodValidationPipe());
-  app.useGlobalFilters(new HttpExceptionFilter(), new ZodValidationFilter());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   const doc = new DocumentBuilder()
     .addBearerAuth(
@@ -35,6 +35,8 @@ async function bootstrap() {
     .build();
 
   const docFactory = SwaggerModule.createDocument(app, doc);
+  // @ts-ignore
+  docFactory.openapi = "3.1.0";
 
   const env = app.get(EnvDto);
   const port = env.PORT;

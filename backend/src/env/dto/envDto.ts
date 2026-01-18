@@ -1,25 +1,51 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { IsEnum, IsNumber, IsString, IsOptional } from "class-validator";
+import { Type } from "class-transformer";
 
-export const envSchema = z
-  .object({
-    PORT: z.coerce.number({ error: "PORT is required" }),
-    NODE_ENV: z.enum(["development", "production", "test"], {
-      error: "NODE_ENV is required",
-    }),
-    JWT_SECRET: z.string({ error: "JWT_SECRET is required" }),
-    JWT_EXPIRY: z.coerce.number({ error: "JWT_EXPIRY is required" }),
-    AUTH_SESSION_VALIDITY_IN_SECONDS: z.coerce.number({ error: "AUTH_SESSION_VALIDITY_IN_SECONDS is required" }),
-    REFRESH_TOKEN_VALIDITY_IN_SECONDS: z.coerce.number({ error: "REFRESH_TOKEN_VALIDITY_IN_SECONDS is required" }),
-    WEBHOOK_DELIVERY_CONCURRENCY: z.coerce.number().optional().default(3),
-    REDIS_HOST: z.string().default('localhost'),
-    REDIS_PORT: z.coerce.number().default(6379),
-  })
-  .strip();
+export enum Environment {
+  Development = "development",
+  Production = "production",
+  Test = "test",
+}
 
-export type AppEnvConfig = z.infer<typeof envSchema>;
+export class EnvDto {
+  @Type(() => Number)
+  @IsNumber()
+  PORT: number = 5000;
 
-export const saneDefaults: Partial<Record<keyof AppEnvConfig, string>> = {
+  @IsEnum(Environment)
+  NODE_ENV: Environment = Environment.Development;
+
+  @IsString()
+  JWT_SECRET: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  JWT_EXPIRY: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  AUTH_SESSION_VALIDITY_IN_SECONDS: number = 60 * 60 * 24 * 14;
+
+  @Type(() => Number)
+  @IsNumber()
+  REFRESH_TOKEN_VALIDITY_IN_SECONDS: number = 60 * 60 * 24 * 30;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  WEBHOOK_DELIVERY_CONCURRENCY: number = 3;
+
+  @IsString()
+  @IsOptional()
+  REDIS_HOST: string = "localhost";
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  REDIS_PORT: number = 6379;
+}
+
+export const saneDefaults: Record<string, any> = {
   PORT: "5000",
   NODE_ENV: "development",
   JWT_EXPIRY: process.env.JWT_EXPIRY,
@@ -30,5 +56,3 @@ export const saneDefaults: Partial<Record<keyof AppEnvConfig, string>> = {
   REDIS_HOST: process.env.REDIS_HOST || 'localhost',
   REDIS_PORT: process.env.REDIS_PORT || '6379',
 };
-
-export class EnvDto extends createZodDto(envSchema) { }

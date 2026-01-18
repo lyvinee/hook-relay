@@ -1,11 +1,21 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsObject, IsString, IsUUID, MinLength } from "class-validator";
 
-export const createWebhookEventSchema = z.object({
-    webhookId: z.uuid().describe("ID of the webhook destination"),
-    topicId: z.uuid().describe("ID of the topic"),
-    eventPayload: z.record(z.string(), z.any()).describe("Payload for the event"),
-    webhookIdempotencyKey: z.string().min(1).describe("Idempotency key for the event"),
-});
+export class CreateWebhookEventDto {
+    @ApiProperty({ description: "ID of the webhook destination" })
+    @IsUUID()
+    webhookId: string;
 
-export class CreateWebhookEventDto extends createZodDto(createWebhookEventSchema) { }
+    @ApiProperty({ description: "ID of the topic" })
+    @IsUUID()
+    topicId: string;
+
+    @ApiProperty({ description: "Payload for the event" })
+    @IsObject()
+    eventPayload: Record<string, any>;
+
+    @ApiProperty({ description: "Idempotency key for the event" })
+    @IsString()
+    @MinLength(1)
+    webhookIdempotencyKey: string;
+}

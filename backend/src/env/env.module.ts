@@ -1,5 +1,7 @@
 import { DRIZZLE } from "@/database/database.module";
-import { EnvDto, envSchema, saneDefaults } from "@/env/dto/envDto";
+import { EnvDto, saneDefaults } from "@/env/dto/envDto";
+import { validateSync } from "class-validator";
+import { plainToClass } from "class-transformer";
 import { Module } from "@nestjs/common";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@/db/schema";
@@ -39,12 +41,17 @@ import * as schema from "@/db/schema";
             console.warn("No active configs found in database.");
           }
 
-          const parsed = envSchema.parse(finalCfg);
+          const parsed = plainToClass(EnvDto, finalCfg);
+          const errors = validateSync(parsed);
+          if (errors.length > 0) {
+            console.error("Env validation errors:", errors);
+            throw new Error("Env validation failed");
+          }
 
           await db.insert(schema.appConfig)
             .values(
               Object.entries(parsed)
-                .map(([key, value]) => ({ key, value: value.toString(), isActive: true })
+                .map(([key, value]) => ({ key, value: String(value), isActive: true })
                 )
             ).onConflictDoNothing({ target: schema.appConfig.key });
 

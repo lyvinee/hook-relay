@@ -1,8 +1,4 @@
-import { createZodDto } from "nestjs-zod";
-import { createWebhookSchema } from "./create-webhook.dto";
+import { PartialType } from "@nestjs/swagger";
+import { CreateWebhookDto } from "./create-webhook.dto";
 
-export const updateWebhookSchema = createWebhookSchema
-    .partial()
-    .strip();
-
-export class UpdateWebhookDto extends createZodDto(updateWebhookSchema) { }
+export class UpdateWebhookDto extends PartialType(CreateWebhookDto) { }

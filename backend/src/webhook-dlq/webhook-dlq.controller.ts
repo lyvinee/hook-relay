@@ -13,7 +13,7 @@ export class WebhookDlqController {
     constructor(private readonly webhookDlqService: WebhookDlqService) { }
 
     @Get()
-    @Get()
+
     @ApiOperation({
         summary: 'List failed deliveries',
         description: 'Retrieves a paginated list of failed webhook deliveries currently in the Dead Letter Queue.',

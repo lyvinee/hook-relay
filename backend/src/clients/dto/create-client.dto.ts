@@ -1,12 +1,21 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
-export const createClientSchema = z
-    .object({
-        name: z.string().min(1, "Name is required").max(200).describe("The name of the client"),
-        slugName: z.string().min(1, "Slug name is required").max(200).describe("Unique slug for the client"),
-        isActive: z.boolean().optional().default(false).describe("Whether the client is active"),
-    })
-    .strip();
+export class CreateClientDto {
+    @ApiProperty({ description: "The name of the client" })
+    @IsString()
+    @MinLength(1, { message: "Name is required" })
+    @MaxLength(200)
+    name: string;
 
-export class CreateClientDto extends createZodDto(createClientSchema) { }
+    @ApiProperty({ description: "Unique slug for the client" })
+    @IsString()
+    @MinLength(1, { message: "Slug name is required" })
+    @MaxLength(200)
+    slugName: string;
+
+    @ApiProperty({ description: "Whether the client is active", default: false, required: false })
+    @IsBoolean()
+    @IsOptional()
+    isActive: boolean = false;
+}

@@ -1,6 +1,4 @@
-import { createZodDto } from "nestjs-zod";
-import { createClientSchema } from "./create-client.dto";
+import { PartialType } from "@nestjs/swagger";
+import { CreateClientDto } from "./create-client.dto";
 
-export const updateClientSchema = createClientSchema.partial().strip();
-
-export class UpdateClientDto extends createZodDto(updateClientSchema) { }
+export class UpdateClientDto extends PartialType(CreateClientDto) { }

@@ -4,7 +4,7 @@ import { LoginResponseDto } from "@/auth/dto/loginResponseDto";
 import { MeResponseDto } from "@/auth/dto/meResponseDto";
 import { Body, Controller, Post, Res, UseInterceptors, Req, UnauthorizedException, Inject, Get, UseGuards } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiBody, ApiOperation, ApiTags, ApiCookieAuth } from "@nestjs/swagger";
-import { ZodResponse, ZodSerializerDto, ZodSerializerInterceptor } from "nestjs-zod";
+import { ApiResponse } from "@nestjs/swagger";
 import { ValidationErrorResponse } from "@/common/dto/validation-error.dto";
 import type { Response, Request } from "express";
 import { EnvDto } from "@/env/dto/envDto";
@@ -14,7 +14,7 @@ import { ApiStandardResponse } from "@/common/decorators/api-standard-response.d
 @ApiTags("Auth")
 @ApiStandardResponse()
 @Controller("auth")
-@UseInterceptors(ZodSerializerInterceptor)
+
 export class AuthController {
   constructor(private readonly authService: AuthService, @Inject() private readonly config: EnvDto) { }
 
@@ -25,7 +25,7 @@ export class AuthController {
     operationId: "authLogin"
   })
   @ApiBody({ type: LoginDto })
-  @ZodResponse({
+  @ApiResponse({
     type: LoginResponseDto,
     status: 200,
     description: "Login successful. Access token returned in body, refresh token set in cookie.",
@@ -34,7 +34,7 @@ export class AuthController {
     type: ValidationErrorResponse,
     description: "Validation failed",
   })
-  @ZodSerializerDto(LoginResponseDto)
+
   async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { accessToken, refreshToken } = await this.authService.login(body.email, body.password);
 
@@ -55,12 +55,12 @@ export class AuthController {
     operationId: "authRefresh"
   })
   @ApiCookieAuth("refreshToken")
-  @ZodResponse({
+  @ApiResponse({
     type: LoginResponseDto,
     status: 200,
     description: "Refresh successful. New access token returned in body, new refresh token set in cookie.",
   })
-  @ZodSerializerDto(LoginResponseDto)
+
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = (req as any).cookies?.["refreshToken"];
     if (!refreshToken) {
@@ -86,7 +86,7 @@ export class AuthController {
     description: "Retrieves the profile information (User ID, Email, Role) of the currently authenticated user based on the valid access token.",
     operationId: "authGetMe"
   })
-  @ZodResponse({
+  @ApiResponse({
     type: MeResponseDto,
     status: 200,
     description: "Current user profile retrieved successfully",

@@ -1,13 +1,40 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsDateString, IsInt, IsOptional, IsUUID, Max, Min } from "class-validator";
+import { Type } from "class-transformer";
 
-export const listWebhooksSchema = z.object({
-    page: z.coerce.number().min(1).default(1).describe("Page number"),
-    limit: z.coerce.number().min(1).max(100).default(10).describe("Items per page"),
-    startDate: z.string().datetime().optional().describe("Filter by creation date (start)"),
-    endDate: z.string().datetime().optional().describe("Filter by creation date (end)"),
-    clientId: z.string().uuid().optional().describe("Filter by Client ID"),
-    webhookId: z.string().uuid().optional().describe("Filter by Webhook ID"),
-});
+export class ListWebhooksDto {
+    @ApiProperty({ description: "Page number", default: 1, required: false })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    page: number = 1;
 
-export class ListWebhooksDto extends createZodDto(listWebhooksSchema) { }
+    @ApiProperty({ description: "Items per page", default: 10, required: false })
+    @IsInt()
+    @Min(1)
+    @Max(100)
+    @Type(() => Number)
+    @IsOptional()
+    limit: number = 10;
+
+    @ApiProperty({ description: "Filter by creation date (start)", required: false })
+    @IsDateString()
+    @IsOptional()
+    startDate?: string;
+
+    @ApiProperty({ description: "Filter by creation date (end)", required: false })
+    @IsDateString()
+    @IsOptional()
+    endDate?: string;
+
+    @ApiProperty({ description: "Filter by Client ID", required: false })
+    @IsUUID()
+    @IsOptional()
+    clientId?: string;
+
+    @ApiProperty({ description: "Filter by Webhook ID", required: false })
+    @IsUUID()
+    @IsOptional()
+    webhookId?: string;
+}

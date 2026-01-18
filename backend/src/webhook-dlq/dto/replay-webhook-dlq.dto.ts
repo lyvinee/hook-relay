@@ -1,9 +1,14 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
 
-export const replayWebhookDlqSchema = z.object({
-    initiatorId: z.string().uuid().optional().describe("ID of the user initiating the replay"),
-    initiatorType: z.enum(['system', 'user']).default('user').optional().describe("Type of initiator (system or user)"),
-});
+export class ReplayWebhookDlqDto {
+    @ApiProperty({ description: "ID of the user initiating the replay", required: false })
+    @IsUUID()
+    @IsOptional()
+    initiatorId?: string;
 
-export class ReplayWebhookDlqDto extends createZodDto(replayWebhookDlqSchema) { }
+    @ApiProperty({ description: "Type of initiator (system or user)", default: "user", required: false })
+    @IsEnum(['system', 'user'])
+    @IsOptional()
+    initiatorType?: 'system' | 'user' = 'user';
+}

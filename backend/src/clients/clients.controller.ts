@@ -14,7 +14,7 @@ import { CreateClientDto } from "./dto/create-client.dto";
 import { UpdateClientDto } from "./dto/update-client.dto";
 import { ListClientsDto } from "./dto/list-clients.dto";
 import { ClientResponseDto } from "./dto/client-response.dto";
-import { ZodSerializerDto, ZodSerializerInterceptor, ZodResponse } from "nestjs-zod";
+import { ApiResponse } from "@nestjs/swagger";
 import { AuthGuard } from "@/common/guards/auth.guard";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ApiStandardResponse } from "@/common/decorators/api-standard-response.decorator";
@@ -23,7 +23,7 @@ import { ApiStandardResponse } from "@/common/decorators/api-standard-response.d
 @ApiBearerAuth()
 @ApiStandardResponse()
 @Controller("clients")
-@UseInterceptors(ZodSerializerInterceptor)
+
 @UseGuards(AuthGuard)
 export class ClientsController {
     constructor(private readonly clientsService: ClientsService) { }
@@ -34,12 +34,11 @@ export class ClientsController {
         description: "Creates a new client record in the system using the provided name and slug. Returns the created client details.",
         operationId: "createClient",
     })
-    @ZodResponse({
+    @ApiResponse({
         type: ClientResponseDto,
         status: 201,
         description: "Client created successfully",
     })
-    @ZodSerializerDto(ClientResponseDto)
     create(@Body() createClientDto: CreateClientDto) {
         return this.clientsService.create(createClientDto);
     }
@@ -60,12 +59,11 @@ export class ClientsController {
         description: "Fetches the details of a specific client identified by their UUID.",
         operationId: "getClientById",
     })
-    @ZodResponse({
+    @ApiResponse({
         type: ClientResponseDto,
         status: 200,
         description: "Client details retrieved successfully",
     })
-    @ZodSerializerDto(ClientResponseDto)
     findOne(@Param("id") id: string) {
         return this.clientsService.findOne(id);
     }
@@ -76,12 +74,11 @@ export class ClientsController {
         description: "Updates the details of an existing client. Only provided fields are updated. Automatically updates the `updatedAt` timestamp.",
         operationId: "updateClient",
     })
-    @ZodResponse({
+    @ApiResponse({
         type: ClientResponseDto,
         status: 200,
         description: "Client updated successfully",
     })
-    @ZodSerializerDto(ClientResponseDto)
     update(@Param("id") id: string, @Body() updateClientDto: UpdateClientDto) {
         return this.clientsService.update(id, updateClientDto);
     }

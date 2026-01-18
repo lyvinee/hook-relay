@@ -1,13 +1,40 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from "class-validator";
+import { Type } from "class-transformer";
 
-export const listWebhookDeliveriesSchema = z.object({
-    page: z.coerce.number().min(1).default(1).describe("Page number"),
-    limit: z.coerce.number().min(1).max(100).default(10).describe("Items per page"),
-    startDate: z.iso.datetime().optional().describe("Filter by start date (ISO 8601)"),
-    endDate: z.iso.datetime().optional().describe("Filter by end date (ISO 8601)"),
-    webhookEventId: z.uuid().optional().describe("Filter by specific webhook event ID"),
-    status: z.enum(["pending", "success", "failed", "dlq"]).optional().describe("Filter by delivery status"),
-});
+export class ListWebhookDeliveriesDto {
+    @ApiProperty({ description: "Page number", default: 1, required: false })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    page: number = 1;
 
-export class ListWebhookDeliveriesDto extends createZodDto(listWebhookDeliveriesSchema) { }
+    @ApiProperty({ description: "Items per page", default: 10, required: false })
+    @IsInt()
+    @Min(1)
+    @Max(100)
+    @Type(() => Number)
+    @IsOptional()
+    limit: number = 10;
+
+    @ApiProperty({ description: "Filter by start date (ISO 8601)", required: false })
+    @IsDateString()
+    @IsOptional()
+    startDate?: string;
+
+    @ApiProperty({ description: "Filter by end date (ISO 8601)", required: false })
+    @IsDateString()
+    @IsOptional()
+    endDate?: string;
+
+    @ApiProperty({ description: "Filter by specific webhook event ID", required: false })
+    @IsUUID()
+    @IsOptional()
+    webhookEventId?: string;
+
+    @ApiProperty({ description: "Filter by delivery status", enum: ["pending", "success", "failed", "dlq"], required: false })
+    @IsEnum(["pending", "success", "failed", "dlq"])
+    @IsOptional()
+    status?: "pending" | "success" | "failed" | "dlq";
+}

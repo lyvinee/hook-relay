@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "generate:openapi": "ts-node --transpile-only -r tsconfig-paths/register src/generate-openapi.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -33,12 +34,13 @@
     "argon2": "^0.44.0",
     "axios": "^1.13.2",
     "bullmq": "^5.66.5",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "drizzle-seed": "^0.3.1",
     "lodash": "^4.17.21",
-    "nestjs-zod": "^5.1.1",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

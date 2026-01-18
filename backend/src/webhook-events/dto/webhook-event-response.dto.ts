@@ -1,15 +1,27 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
 
-export const webhookEventResponseSchema = z.object({
-    webhookEventId: z.string().uuid().describe("Unique identifier for the webhook event"),
-    webhookId: z.string().uuid().describe("ID of the webhook destination"),
-    topicId: z.string().uuid().describe("ID of the topic"),
-    eventPayload: z.any().describe("Payload of the event"),
-    eventTimestamp: z.preprocess((val) => val instanceof Date ? val.toISOString() : val, z.string().datetime()).describe("Timestamp when the event occurred"),
-    webhookIdempotencyKey: z.string().describe("Idempotency key"),
-    createdAt: z.preprocess((val) => val instanceof Date ? val.toISOString() : val, z.string().datetime().nullable()).describe("Creation timestamp"),
-    updatedAt: z.preprocess((val) => val instanceof Date ? val.toISOString() : val, z.string().datetime().nullable().optional()).describe("Last update timestamp"),
-});
+export class WebhookEventResponseDto {
+    @ApiProperty({ description: "Unique identifier for the webhook event" })
+    webhookEventId: string;
 
-export class WebhookEventResponseDto extends createZodDto(webhookEventResponseSchema) { }
+    @ApiProperty({ description: "ID of the webhook destination" })
+    webhookId: string;
+
+    @ApiProperty({ description: "ID of the topic" })
+    topicId: string;
+
+    @ApiProperty({ description: "Payload of the event" })
+    eventPayload: Record<string, any>;
+
+    @ApiProperty({ description: "Timestamp when the event occurred" })
+    eventTimestamp: string;
+
+    @ApiProperty({ description: "Idempotency key" })
+    webhookIdempotencyKey: string;
+
+    @ApiProperty({ description: "Creation timestamp" })
+    createdAt: string;
+
+    @ApiProperty({ description: "Last update timestamp", required: false, nullable: true })
+    updatedAt?: string | null;
+}

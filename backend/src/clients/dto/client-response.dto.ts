@@ -1,13 +1,21 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
 
-export const clientResponseSchema = z.object({
-    clientId: z.string().uuid().describe("Unique identifier of the client"),
-    name: z.string().describe("The name of the client"),
-    slugName: z.string().describe("Unique slug for the client"),
-    isActive: z.boolean().nullable().describe("Whether the client is active"),
-    createdAt: z.preprocess((val) => val instanceof Date ? val.toISOString() : val, z.string().datetime().nullable()).describe("Date when the client was created"),
-    updatedAt: z.preprocess((val) => val instanceof Date ? val.toISOString() : val, z.string().datetime().nullable()).describe("Date when the client was last updated"),
-});
+export class ClientResponseDto {
+    @ApiProperty({ description: "Unique identifier of the client" })
+    clientId: string;
 
-export class ClientResponseDto extends createZodDto(clientResponseSchema) { }
+    @ApiProperty({ description: "The name of the client" })
+    name: string;
+
+    @ApiProperty({ description: "Unique slug for the client" })
+    slugName: string;
+
+    @ApiProperty({ description: "Whether the client is active", nullable: true })
+    isActive?: boolean | null;
+
+    @ApiProperty({ description: "Date when the client was created", nullable: true })
+    createdAt?: string | null;
+
+    @ApiProperty({ description: "Date when the client was last updated", nullable: true })
+    updatedAt?: string | null;
+}

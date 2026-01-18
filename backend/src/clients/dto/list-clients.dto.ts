@@ -1,11 +1,20 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "zod";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsInt, IsOptional, Max, Min } from "class-validator";
+import { Type } from "class-transformer";
 
-export const listClientsSchema = z
-    .object({
-        page: z.coerce.number().min(1).default(1).describe("Page number for pagination"),
-        limit: z.coerce.number().min(1).max(100).default(10).describe("Number of items per page"),
-    })
-    .strip();
+export class ListClientsDto {
+    @ApiProperty({ description: "Page number for pagination", default: 1, required: false })
+    @IsInt()
+    @Min(1)
+    @Type(() => Number)
+    @IsOptional()
+    page: number = 1;
 
-export class ListClientsDto extends createZodDto(listClientsSchema) { }
+    @ApiProperty({ description: "Number of items per page", default: 10, required: false })
+    @IsInt()
+    @Min(1)
+    @Max(100)
+    @Type(() => Number)
+    @IsOptional()
+    limit: number = 10;
+}

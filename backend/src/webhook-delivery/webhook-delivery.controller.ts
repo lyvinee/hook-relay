@@ -14,7 +14,7 @@ export class WebhookDeliveriesController {
     constructor(private readonly webhookDeliveriesService: WebhookDeliveriesService) { }
 
     @Get()
-    @Get()
+
     @ApiOperation({
         summary: 'Retrieve delivery logs',
         description: 'Fetches a paginated history of webhook delivery attempts, including status and timestamps.',
