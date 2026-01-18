@@ -57,6 +57,12 @@ export const authSessionStatus = pgEnum("auth_session_status", [
   "revoked",
 ]);
 
+export const webhookDeliveryInitiator = pgEnum("webhook_delivery_initiator", [
+  "system",
+  "user",
+]);
+
+
 export const users = pgTable("users", {
   userId: uuid("user_id").defaultRandom().primaryKey(),
   role: userRole("role").notNull(),
@@ -190,6 +196,8 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
     .notNull()
     .references(() => webhookEvents.webhookEventId),
   deliveryPayload: jsonb("delivery_payload").notNull(),
+  createdBy: webhookDeliveryInitiator("created_by").notNull().default("system"),
+  createdById: uuid("created_by_id"),
   deliveryTimestamp: timestamp("delivery_timestamp", {
     withTimezone: true,
   }).notNull(),

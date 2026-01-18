@@ -135,22 +135,23 @@ describe("AuthService", () => {
         tokenHash: "hash",
         refreshTokenSessionId: "rid",
         authSessionId: "sid",
-        authSession: { userId: "uid" },
+        authSession: { userId: "uid", status: "active", expiresAt: new Date(Date.now() + 10000) },
         expiresAt: new Date(Date.now() + 10000)
       });
       mockPasswordHasher.verify.mockResolvedValue(true);
       mockPasswordHasher.createToken.mockReturnValue("new_token");
+      mockConfig.AUTH_SESSION_VALIDITY_IN_SECONDS = 3600;
 
-      // Mock transaction for rotation and creation
+      // Mock transaction flow
       mockDb.transaction.mockImplementation(async (cb) => {
         const tx = {
-          update: jest.fn().mockReturnThis(),
-          set: jest.fn().mockReturnThis(),
-          where: jest.fn().mockReturnThis(),
-          insert: jest.fn().mockReturnValue({
-            values: jest.fn().mockReturnValue({
-              returning: jest.fn().mockResolvedValue([{ authSessionId: "new_sid" }])
+          update: jest.fn().mockReturnValue({
+            set: jest.fn().mockReturnValue({
+              where: jest.fn().mockResolvedValue({})
             })
+          }),
+          insert: jest.fn().mockReturnValue({
+            values: jest.fn().mockResolvedValue({})
           }),
         };
         return cb(tx);
@@ -158,6 +159,8 @@ describe("AuthService", () => {
 
       const result = await service.refresh("valid_token");
       expect(result.refreshToken).toBe("new_token");
+      // Should sign with the SAME authSessionId
+      expect(mockJwtService.sign).toHaveBeenCalledWith(expect.objectContaining({ authSessionId: "sid" }));
     });
   });
   describe("validateSession", () => {

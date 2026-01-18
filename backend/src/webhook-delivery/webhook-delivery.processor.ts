@@ -20,8 +20,8 @@ export class WebhookDeliveryProcessor extends WorkerHost {
         super();
     }
 
-    async process(job: Job<{ eventId: string }>): Promise<any> {
-        const { eventId } = job.data;
+    async process(job: Job<{ eventId: string; initiator?: { type: 'system' | 'user'; id?: string } }>): Promise<any> {
+        const { eventId, initiator } = job.data;
         this.logger.log(`Processing webhook delivery for event: ${eventId}`);
 
         // 1. Fetch Event and Webhook details
@@ -48,6 +48,8 @@ export class WebhookDeliveryProcessor extends WorkerHost {
                 deliveryTimestamp: new Date(),
                 deliveryStatus: 'pending',
                 deliveryAttempts: job.attemptsMade + 1,
+                createdBy: initiator?.type || 'system',
+                createdById: initiator?.id,
             })
             .returning();
 

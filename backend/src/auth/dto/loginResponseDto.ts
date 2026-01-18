@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const loginResponseSchema = z
   .object({
-    accessToken: z.string({ error: "token is required" }),
+    accessToken: z.string({ error: "token is required" }).describe("JWT access token"),
   })
   .strip();
 

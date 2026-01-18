@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const loginBodySchema = z
   .object({
-    email: z.email({ error: "email is required" }),
+    email: z.email({ error: "email is required" }).describe("The user's email address"),
     password: z
       .string()
       .min(8, { error: "password is required" })
@@ -47,8 +47,8 @@ export const loginBodySchema = z
             path: ["password"],
           });
         }
-      }),
+      }).describe("The user's password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"),
   })
   .strip();
 
-export class LoginDto extends createZodDto(loginBodySchema) {}
+export class LoginDto extends createZodDto(loginBodySchema) { }

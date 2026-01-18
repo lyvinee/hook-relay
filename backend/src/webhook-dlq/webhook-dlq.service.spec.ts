@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WebhookDlqService } from './webhook-dlq.service';
 import { DRIZZLE } from '@/database/database.module';
 import { NotFoundException } from '@nestjs/common';
+import { getQueueToken } from '@nestjs/bullmq';
 
 const mockDb = {
     select: jest.fn(),
@@ -9,7 +10,14 @@ const mockDb = {
         webhookDlq: {
             findFirst: jest.fn(),
         },
+        webhookDeliveries: { // Initialize as object, not mocked function yet, specific tests will mock methods
+            findFirst: jest.fn(),
+        }
     },
+};
+
+const mockQueue = {
+    add: jest.fn(),
 };
 
 describe('WebhookDlqService', () => {
@@ -21,6 +29,7 @@ describe('WebhookDlqService', () => {
             providers: [
                 WebhookDlqService,
                 { provide: DRIZZLE, useValue: mockDb },
+                { provide: getQueueToken('webhook-delivery'), useValue: mockQueue },
             ],
         }).compile();
 
@@ -102,6 +111,57 @@ describe('WebhookDlqService', () => {
             mockDb.query.webhookDlq.findFirst.mockResolvedValue(null);
 
             await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
+        });
+    });
+
+    describe('replay', () => {
+        it('should throw error if delivery is pending', async () => {
+            const dlqEntry = {
+                delivery: { webhookEventId: 'ev-1' }
+            };
+            mockDb.query.webhookDlq.findFirst.mockResolvedValue(dlqEntry);
+
+            const pendingDelivery = { deliveryStatus: 'pending' };
+            // Ensure we are mocking the specific call
+            mockDb.query.webhookDeliveries.findFirst.mockResolvedValue(pendingDelivery);
+
+            await expect(service.replay('1', {})).rejects.toThrow('A delivery is already in progress for this event.');
+        });
+
+        it('should return success if delivery already succeeded', async () => {
+            const dlqEntry = {
+                delivery: { webhookEventId: 'ev-1' }
+            };
+            mockDb.query.webhookDlq.findFirst.mockResolvedValue(dlqEntry);
+
+            const successDelivery = { deliveryStatus: 'success', webhookDeliveryId: 'del-1' };
+            mockDb.query.webhookDeliveries.findFirst.mockResolvedValue(successDelivery);
+
+            const result = await service.replay('1', {});
+            expect(result).toEqual({ status: 'Delivery already succeeded', deliveryId: 'del-1' });
+        });
+
+        it('should add to queue if no pending/success delivery', async () => {
+            const dlqEntry = {
+                delivery: { webhookEventId: 'ev-1' }
+            };
+            mockDb.query.webhookDlq.findFirst.mockResolvedValue(dlqEntry);
+
+            // Mock no existing delivery (or failed one)
+            mockDb.query.webhookDeliveries.findFirst.mockResolvedValue(null);
+            // Or use null to simulate "not found" which means no pending/success if we filtered by that in real query,
+            // but the code actually queries existing deliveries and checks status.
+            // If the query returns a failed delivery:
+            mockDb.query.webhookDeliveries.findFirst.mockResolvedValue({ deliveryStatus: 'failed' });
+
+
+            const dto = { initiatorId: 'user-1', initiatorType: 'user' as const };
+            await service.replay('1', dto);
+
+            expect(mockQueue.add).toHaveBeenCalledWith('deliver', {
+                eventId: 'ev-1',
+                initiator: { type: 'user', id: 'user-1' }
+            }, expect.any(Object));
         });
     });
 });

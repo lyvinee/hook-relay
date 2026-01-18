@@ -81,18 +81,37 @@ export class AuthService {
       throw new UnauthorizedException("Invalid refresh token");
     }
 
-    // Rotate: Invalidate old session
+    // Check if the underlying auth session is still valid
+    if (!existingSession.authSession || existingSession.authSession.status !== "active" || new Date() > existingSession.authSession.expiresAt) {
+      throw new UnauthorizedException("Session expired");
+    }
+
+    // Create new refresh token
+    const newRefreshToken = this.pwdHasher.createToken();
+    const newRefreshTokenHash = await this.pwdHasher.hash(newRefreshToken);
+    const newLookupHash = this.pwdHasher.lookupHash(newRefreshToken);
+
+    // Rotate: Invalidate old refresh session, create new one attached to SAME auth session
     await this.db.transaction(async (tx) => {
       await tx.update(schema.refreshTokenSessions).set({
         rotatedAt: new Date(),
       }).where(eq(schema.refreshTokenSessions.refreshTokenSessionId, existingSession.refreshTokenSessionId));
 
-      await tx.update(schema.authSessions).set({
-        status: "expired"
-      }).where(eq(schema.authSessions.authSessionId, existingSession.authSessionId));
+      await tx.insert(schema.refreshTokenSessions).values({
+        tokenHash: newRefreshTokenHash,
+        lookupHash: newLookupHash,
+        authSessionId: existingSession.authSessionId,
+        expiresAt: new Date(Date.now() + this.config.AUTH_SESSION_VALIDITY_IN_SECONDS * 1000), // aligning refresh token validity with session or config
+      });
     });
 
-    return this.createSession(existingSession.authSession.userId);
+    const payload = { uId: existingSession.authSession.userId, authSessionId: existingSession.authSessionId };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 
   private async createSession(userId: string): Promise<{ accessToken: string, refreshToken: string }> {

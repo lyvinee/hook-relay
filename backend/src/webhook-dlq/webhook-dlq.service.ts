@@ -4,9 +4,15 @@ import * as schema from '@/db/schema';
 import { ListWebhookDlqDto } from './dto/list-webhook-dlq.dto';
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+
 @Injectable()
 export class WebhookDlqService {
-    constructor(@Inject(DRIZZLE) private readonly db: DbType) { }
+    constructor(
+        @Inject(DRIZZLE) private readonly db: DbType,
+        @InjectQueue('webhook-delivery') private readonly deliveryQueue: Queue
+    ) { }
 
     async findAll(query: ListWebhookDlqDto) {
         const { page, limit, startDate, endDate, webhookEventId, webhookId } = query;
@@ -112,5 +118,50 @@ export class WebhookDlqService {
         }
 
         return entry;
+    }
+
+    async replay(id: string, dto: import('./dto/replay-webhook-dlq.dto').ReplayWebhookDlqDto) {
+        const dlqEntry = await this.findOne(id);
+        const eventId = dlqEntry.delivery.webhookEventId;
+
+        // Check if there is already a pending or success delivery
+        // We only want to prevent retry if it is currently pending or recently succeeded to avoid race conditions/spam
+        const existingDelivery = await this.db.query.webhookDeliveries.findFirst({
+            where: and(
+                eq(schema.webhookDeliveries.webhookEventId, eventId),
+                // Check for pending OR success
+                // specific logic: "trigger can only be initiated when there is no pending or succeeded deliveries"
+                // If succeeded, we should arguably just return "Already succeeded"
+                // Checking for BOTH pending and success as blocking conditions
+            ),
+            orderBy: (deliveries, { desc }) => [desc(deliveries.createdAt)],
+        });
+
+        if (existingDelivery) {
+            if (existingDelivery.deliveryStatus === 'pending') {
+                throw new Error('A delivery is already in progress for this event.');
+            }
+            if (existingDelivery.deliveryStatus === 'success') {
+                // If success, just return that it is success.
+                return { status: 'Delivery already succeeded', deliveryId: existingDelivery.webhookDeliveryId };
+            }
+        }
+
+        // Add to queue
+        await this.deliveryQueue.add('deliver', {
+            eventId,
+            initiator: {
+                type: dto.initiatorType || 'user',
+                id: dto.initiatorId,
+            }
+        }, {
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 1000,
+            },
+        });
+
+        return { status: 'Replay initiated' };
     }
 }

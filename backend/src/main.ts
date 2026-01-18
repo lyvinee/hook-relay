@@ -6,6 +6,7 @@ import { EnvDto } from "@/env/dto/envDto";
 import { ZodValidationPipe } from "nestjs-zod";
 
 import { ZodValidationFilter } from "@/common/filters/zod-validation.filter";
+import { HttpExceptionFilter } from "@/common/filters/http-exception.filter";
 
 import cookieParser from "cookie-parser";
 
@@ -13,7 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   app.useGlobalPipes(new ZodValidationPipe());
-  app.useGlobalFilters(new ZodValidationFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(), new ZodValidationFilter());
 
   const doc = new DocumentBuilder()
     .addBearerAuth(
