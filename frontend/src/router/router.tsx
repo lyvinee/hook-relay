@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import MainLayout from '../layouts/MainLayout';
 import ClientLayout from '../layouts/ClientLayout';
+import DevLayout from '../layouts/DevLayout';
 // import AdminLayout from '../layouts/AdminLayout'; // TODO: Use when implementing role-based switching
 import Login from '../pages/auth/Login';
 import DashboardOverview from '../pages/dashboard/DashboardOverview';
@@ -19,6 +20,8 @@ import ClientDetail from '../pages/admin/clients/ClientDetail';
 import UserList from '../pages/admin/users/UserList';
 import UserCreate from '../pages/admin/users/UserCreate';
 import UserDetail from '../pages/admin/users/UserDetail';
+import RouteCatalog from '../pages/dev/RouteCatalog';
+import ComponentLab from '../pages/dev/ComponentLab';
 import NotFound from '../pages/NotFound';
 
 const router = createBrowserRouter([
@@ -89,6 +92,21 @@ const router = createBrowserRouter([
                             { path: 'new', element: <UserCreate /> },
                             { path: ':userId', element: <UserDetail /> },
                         ],
+                    },
+                ],
+            },
+            // Dev Tools
+            {
+                path: 'dev',
+                element: <DevLayout />,
+                children: [
+                    {
+                        index: true,
+                        element: <RouteCatalog />,
+                    },
+                    {
+                        path: 'components/datatable',
+                        element: <ComponentLab />,
                     },
                 ],
             },
