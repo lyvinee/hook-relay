@@ -23,4 +23,4 @@ import { EnvDto } from "@/env/dto/envDto";
     }),
   ],
 })
-export class AuthModule { }
+export class AuthModule {}

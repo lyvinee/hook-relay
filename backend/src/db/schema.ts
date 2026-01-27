@@ -7,61 +7,28 @@ import { pgTable } from "drizzle-orm/pg-core";
 import { pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-
 export const createUpdateTimeStamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .$onUpdateFn(() => new Date()),
-}
-
+};
 
 export const userRole = pgEnum("user_role_type", ["user", "admin"]);
-export const signUpAttemptStatus = pgEnum("sign_up_attempt_status", [
-  "pending",
-  "expired",
-  "active"
-]);
+export const signUpAttemptStatus = pgEnum("sign_up_attempt_status", ["pending", "expired", "active"]);
 
-export const userStatus = pgEnum("user_status", [
-  "active",
-  "disabled",
-  "soft_deleted"
-]);
+export const userStatus = pgEnum("user_status", ["active", "disabled", "soft_deleted"]);
 
-export const authMethodType = pgEnum("auth_method_type", [
-  "password",
-  "google",
-  "github",
-]);
-export const webhookDeliveryStatus = pgEnum("webhook_delivery_status", [
-  "pending",
-  "success",
-  "failed",
-  "dlq",
-]);
+export const authMethodType = pgEnum("auth_method_type", ["password", "google", "github"]);
+export const webhookDeliveryStatus = pgEnum("webhook_delivery_status", ["pending", "success", "failed", "dlq"]);
 
-export const verificationChannel = pgEnum("verification_channel", [
-  "email",
-  "sms",
-]);
+export const verificationChannel = pgEnum("verification_channel", ["email", "sms"]);
 
-export const verificationChallengeFlowType = pgEnum("verification_challenge_flow_type", [
-  "sign_up",
-  "forgot_password",
-]);
+export const verificationChallengeFlowType = pgEnum("verification_challenge_flow_type", ["sign_up", "forgot_password"]);
 
-export const authSessionStatus = pgEnum("auth_session_status", [
-  "active",
-  "expired",
-  "revoked",
-]);
+export const authSessionStatus = pgEnum("auth_session_status", ["active", "expired", "revoked"]);
 
-export const webhookDeliveryInitiator = pgEnum("webhook_delivery_initiator", [
-  "system",
-  "user",
-]);
-
+export const webhookDeliveryInitiator = pgEnum("webhook_delivery_initiator", ["system", "user"]);
 
 export const users = pgTable("users", {
   userId: uuid("user_id").defaultRandom().primaryKey(),
@@ -80,8 +47,7 @@ export const signupAttempts = pgTable("signup_attempts", {
   status: signUpAttemptStatus("status").notNull(),
   provider: authMethodType("provider").notNull(),
   ...createUpdateTimeStamps,
-})
-
+});
 
 export const authMethods = pgTable(
   "auth_methods",
@@ -172,9 +138,7 @@ export const webhookEvents = pgTable("webhook_events", {
 export const webhookSubscriptions = pgTable(
   "webhook_subscriptions",
   {
-    webhookSubscriptionId: uuid("webhook_subscription_id")
-      .defaultRandom()
-      .primaryKey(),
+    webhookSubscriptionId: uuid("webhook_subscription_id").defaultRandom().primaryKey(),
     webhookId: uuid("webhook_id")
       .notNull()
       .references(() => webhooks.webhookId),
@@ -201,17 +165,15 @@ export const webhookDeliveries = pgTable("webhook_deliveries", {
   deliveryTimestamp: timestamp("delivery_timestamp", {
     withTimezone: true,
   }).notNull(),
-  deliveryStatus: webhookDeliveryStatus("delivery_status")
-    .notNull()
-    .default("pending"),
+  deliveryStatus: webhookDeliveryStatus("delivery_status").notNull().default("pending"),
   deliveryAttempts: integer("delivery_attempts").notNull().default(0),
   deliveryRetryAfter: timestamp("delivery_retry_after", { withTimezone: true }),
   deliveryError: jsonb("delivery_error"),
   deliveryResponse: jsonb("delivery_response"),
-  deliveryResponseStatus: integer("delivery_response_status")
-    .notNull()
-    .default(0),
-  permanentlyFailedAt: timestamp("permanently_failed_at", { withTimezone: true }),
+  deliveryResponseStatus: integer("delivery_response_status").notNull().default(0),
+  permanentlyFailedAt: timestamp("permanently_failed_at", {
+    withTimezone: true,
+  }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
@@ -227,16 +189,12 @@ export const webhookDlq = pgTable("webhook_dlq", {
   deliveryTimestamp: timestamp("delivery_timestamp", {
     withTimezone: true,
   }).notNull(),
-  deliveryStatus: webhookDeliveryStatus("delivery_status")
-    .notNull()
-    .default("pending"),
+  deliveryStatus: webhookDeliveryStatus("delivery_status").notNull().default("pending"),
   deliveryAttempts: integer("delivery_attempts").notNull().default(0),
   deliveryRetryAfter: timestamp("delivery_retry_after", { withTimezone: true }),
   deliveryError: jsonb("delivery_error"),
   deliveryResponse: jsonb("delivery_response"),
-  deliveryResponseStatus: integer("delivery_response_status")
-    .notNull()
-    .default(0),
+  deliveryResponseStatus: integer("delivery_response_status").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
@@ -248,17 +206,13 @@ export const appConfig = pgTable("app_config", {
   value: jsonb("value").notNull(),
   isActive: boolean("is_active").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdateFn(
-    () => new Date(),
-  ),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdateFn(() => new Date()),
 });
 
 export const verificationChallenges = pgTable(
   "verification_challenges",
   {
-    verificationChallengeId: uuid("verification_challenge_id")
-      .defaultRandom()
-      .primaryKey(),
+    verificationChallengeId: uuid("verification_challenge_id").defaultRandom().primaryKey(),
     flowType: verificationChallengeFlowType("flow_type").notNull(),
     flowId: uuid("flow_id").notNull(),
     channel: verificationChannel("channel").notNull(),
@@ -268,35 +222,35 @@ export const verificationChallenges = pgTable(
     attemptCount: integer("attempt_count").default(0).notNull(),
     ...createUpdateTimeStamps,
   },
-  (t) => [
-    unique().on(t.flowType, t.flowId, t.channel),
-  ],
+  (t) => [unique().on(t.flowType, t.flowId, t.channel)],
 );
-
 
 export const authSessions = pgTable("auth_sessions", {
   authSessionId: uuid("auth_session_id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").notNull().references(() => users.userId),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.userId),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   status: authSessionStatus("status").notNull(),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
   ipHash: varchar("ip_hash", { length: 200 }),
   userAgent: varchar("user_agent", { length: 200 }),
   ...createUpdateTimeStamps,
-})
+});
 
 export const refreshTokenSessions = pgTable("refresh_token_sessions", {
   refreshTokenSessionId: uuid("refresh_token_session_id").defaultRandom().primaryKey(),
-  authSessionId: uuid("auth_session_id").notNull().references(() => authSessions.authSessionId),
+  authSessionId: uuid("auth_session_id")
+    .notNull()
+    .references(() => authSessions.authSessionId),
   tokenHash: varchar("token_hash", { length: 200 }).notNull(),
   lookupHash: varchar("lookup_hash", { length: 200 }).notNull(),
   rotatedAt: timestamp("rotated_at", { withTimezone: true }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   ...createUpdateTimeStamps,
-})
+});
 
 // ---------------------------------- RELATIONS
-
 
 export const usersRelations = relations(users, ({ many }) => ({
   authMethods: many(authMethods),
@@ -327,19 +281,16 @@ export const topicsRelations = relations(topics, ({ many }) => ({
   events: many(webhookEvents),
 }));
 
-export const webhookSubscriptionsRelations = relations(
-  webhookSubscriptions,
-  ({ one }) => ({
-    webhook: one(webhooks, {
-      fields: [webhookSubscriptions.webhookId],
-      references: [webhooks.webhookId],
-    }),
-    topic: one(topics, {
-      fields: [webhookSubscriptions.topicId],
-      references: [topics.topicId],
-    }),
+export const webhookSubscriptionsRelations = relations(webhookSubscriptions, ({ one }) => ({
+  webhook: one(webhooks, {
+    fields: [webhookSubscriptions.webhookId],
+    references: [webhooks.webhookId],
   }),
-);
+  topic: one(topics, {
+    fields: [webhookSubscriptions.topicId],
+    references: [topics.topicId],
+  }),
+}));
 
 export const webhookEventsRelations = relations(webhookEvents, ({ one, many }) => ({
   webhook: one(webhooks, {
@@ -353,16 +304,13 @@ export const webhookEventsRelations = relations(webhookEvents, ({ one, many }) =
   deliveries: many(webhookDeliveries),
 }));
 
-export const webhookDeliveriesRelations = relations(
-  webhookDeliveries,
-  ({ one }) => ({
-    event: one(webhookEvents, {
-      fields: [webhookDeliveries.webhookEventId],
-      references: [webhookEvents.webhookEventId],
-    }),
-    dlq: one(webhookDlq),
+export const webhookDeliveriesRelations = relations(webhookDeliveries, ({ one }) => ({
+  event: one(webhookEvents, {
+    fields: [webhookDeliveries.webhookEventId],
+    references: [webhookEvents.webhookEventId],
   }),
-);
+  dlq: one(webhookDlq),
+}));
 
 export const webhookDlqRelations = relations(webhookDlq, ({ one }) => ({
   delivery: one(webhookDeliveries, {
@@ -377,11 +325,11 @@ export const authSessionsRelations = relations(authSessions, ({ many, one }) => 
     references: [users.userId],
   }),
   refreshTokenSessions: many(refreshTokenSessions),
-}))
+}));
 
 export const refreshTokenSessionsRelations = relations(refreshTokenSessions, ({ one }) => ({
   authSession: one(authSessions, {
     fields: [refreshTokenSessions.authSessionId],
     references: [authSessions.authSessionId],
   }),
-}))
+}));

@@ -1,86 +1,94 @@
-import React, { useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router';
-import { useAuthRefresh, useAuthGetMe } from '../gen/client/auth/auth';
-import { useAuthStore } from '../store/authStore';
-import { navigations } from '../config/navigation';
-import Loader from '../components/Loader';
-
-
-type AuthenticationState = "loading" | "authenticated" | "profile-loaded" | "error";
-
-
+import React, { useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router";
+import { useAuthRefresh, useAuthGetMe } from "../gen/client/auth/auth";
+import { useAuthStore } from "../store/authStore";
+import { navigations } from "../config/navigation";
+import { toast } from "sonner";
+import Loader from "../components/Loader";
 
 const MainLayout: React.FC = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    // Global Auth State
-    const {
-        setAccessToken,
-        setUser,
-    } = useAuthStore();
+  // Global Auth State
+  const { accessToken, setAccessToken, setUser, user, logout } = useAuthStore();
 
-    const [authenticationState, setAuthenticationState] = React.useState<AuthenticationState>("loading");
-    const refreshAuth = useAuthRefresh();
-    const fetchMe = useAuthGetMe({
-        query: { enabled: authenticationState === "authenticated" }
-    });
-
-    const handleAuthInit = React.useCallback(async () => {
-        try {
-            const result = await refreshAuth.mutateAsync();
-            setAccessToken(result.data.accessToken);
-            setAuthenticationState("authenticated");
-        } catch (error) {
-            console.error("Auth initialization failed:", error);
-            setAuthenticationState("error");
+  const refreshAuth = useAuthRefresh({
+    mutation: {
+      onSuccess(data) {
+        setAccessToken(data.data.accessToken);
+      },
+      onError(error) {
+        console.error("Auth refresh failed:", error);
+        if (!accessToken) {
+          navigate(navigations.login);
         }
-    }, [refreshAuth, setAccessToken]);
+      },
+    },
+  });
 
+  const fetchMe = useAuthGetMe({
+    query: { enabled: !!accessToken },
+  });
 
-    useEffect(() => {
-        handleAuthInit();
-    }, [])
+  useEffect(() => {
+    console.group("MainLayout Initializer");
+    console.log("accessToken", accessToken);
+    console.log("user", user);
+    console.groupEnd();
 
-    useEffect(() => {
-        if (fetchMe.data?.data) {
-            setUser(fetchMe.data.data)
-            setAuthenticationState("profile-loaded");
-        }
-    }, [fetchMe])
-
-    useEffect(() => {
-        if (authenticationState === "error") {
-            // Only redirect if NOT on a public page
-            const publicPaths = ['/login', '/dev'];
-            const isPublic = publicPaths.some(path => location.pathname.startsWith(path));
-
-            if (!isPublic) {
-                navigate("/login");
-            }
-        }
-    }, [authenticationState, location.pathname, navigate])
-
-    // Redirect authenticated users away from public pages like Login
-    useEffect(() => {
-        const isPublicAuthPage = location.pathname === '/login';
-        if ((authenticationState === "authenticated" || authenticationState === "profile-loaded") && isPublicAuthPage) {
-            navigate(navigations.dashboard);
-        }
-    }, [authenticationState, location.pathname, navigate]);
-
-
-
-    // Render
-    if (authenticationState === "loading") {
-        return <Loader />;
+    if (!accessToken || !user) {
+      refreshAuth.mutate();
     }
 
-    return (
-        <div className="font-sans antialiased text-base-content min-h-screen">
-            <Outlet />
-        </div>
-    );
+
+  }, [])
+
+  useEffect(() => {
+    if (refreshAuth.isSuccess) {
+      fetchMe.refetch();
+    } else if (refreshAuth.isError) {
+      if (accessToken) return;
+
+      if (location.pathname.includes("login")) return;
+      navigate(navigations.login);
+    }
+
+
+  }, [refreshAuth.isSuccess, refreshAuth.isError, location.pathname, accessToken])
+
+  useEffect(() => {
+    console.log("trigger 1")
+    if (fetchMe.isSuccess) {
+      console.log("fetch me data", fetchMe.data.data);
+      setUser(fetchMe.data.data);
+    } else if (fetchMe.isError) {
+      toast.error("unable to fetch user profile, please login again.")
+      logout(); // Clear session to prevent loop
+      navigate(navigations.login);
+    }
+  }, [fetchMe.isSuccess, fetchMe.isError])
+
+  useEffect(() => {
+    console.log("triggerer")
+    if (user && (location.pathname === "/" || location.pathname === navigations.login)) {
+      console.log("path name", location.pathname);
+      console.log("user", user);
+      navigate(navigations.dashboard);
+    } else {
+      console.log("path name other paht", location.pathname);
+      console.log("user other path", user);
+    }
+  }, [user, location.pathname, navigate]);
+
+  if (fetchMe.isLoading || refreshAuth.isPending) return <Loader />
+
+
+  return (
+    <div className="font-sans antialiased text-base-content min-h-screen">
+      <Outlet />
+    </div>
+  );
 };
 
 export default MainLayout;

@@ -64,17 +64,13 @@ describe("AuthService", () => {
     it("should throw UnauthorizedException if user not found", async () => {
       mockDb.query.users.findFirst.mockResolvedValue(null);
 
-      await expect(service.login("test@example.com", "password")).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login("test@example.com", "password")).rejects.toThrow(UnauthorizedException);
     });
 
     it("should throw UnauthorizedException if user inactive", async () => {
       mockDb.query.users.findFirst.mockResolvedValue({ status: "disabled" });
 
-      await expect(service.login("test@example.com", "password")).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login("test@example.com", "password")).rejects.toThrow(UnauthorizedException);
     });
 
     it("should throw UnauthorizedException if password verification fails", async () => {
@@ -85,9 +81,7 @@ describe("AuthService", () => {
       });
       mockPasswordHasher.verify.mockResolvedValue(false);
 
-      await expect(service.login("test@example.com", "wrong")).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login("test@example.com", "wrong")).rejects.toThrow(UnauthorizedException);
     });
 
     it("should return tokens on success", async () => {
@@ -107,8 +101,8 @@ describe("AuthService", () => {
         const tx = {
           insert: jest.fn().mockReturnValue({
             values: jest.fn().mockReturnValue({
-              returning: jest.fn().mockResolvedValue([{ authSessionId: "sid" }])
-            })
+              returning: jest.fn().mockResolvedValue([{ authSessionId: "sid" }]),
+            }),
           }),
         };
         return cb(tx);
@@ -135,8 +129,12 @@ describe("AuthService", () => {
         tokenHash: "hash",
         refreshTokenSessionId: "rid",
         authSessionId: "sid",
-        authSession: { userId: "uid", status: "active", expiresAt: new Date(Date.now() + 10000) },
-        expiresAt: new Date(Date.now() + 10000)
+        authSession: {
+          userId: "uid",
+          status: "active",
+          expiresAt: new Date(Date.now() + 10000),
+        },
+        expiresAt: new Date(Date.now() + 10000),
       });
       mockPasswordHasher.verify.mockResolvedValue(true);
       mockPasswordHasher.createToken.mockReturnValue("new_token");
@@ -147,11 +145,11 @@ describe("AuthService", () => {
         const tx = {
           update: jest.fn().mockReturnValue({
             set: jest.fn().mockReturnValue({
-              where: jest.fn().mockResolvedValue({})
-            })
+              where: jest.fn().mockResolvedValue({}),
+            }),
           }),
           insert: jest.fn().mockReturnValue({
-            values: jest.fn().mockResolvedValue({})
+            values: jest.fn().mockResolvedValue({}),
           }),
         };
         return cb(tx);
@@ -168,11 +166,15 @@ describe("AuthService", () => {
       mockDb.query.authSessions.findFirst.mockResolvedValue({
         status: "active",
         expiresAt: new Date(Date.now() + 10000),
-        user: { userId: "uid", role: "user", email: "test@example.com" }
+        user: { userId: "uid", role: "user", email: "test@example.com" },
       });
 
       const result = await service.validateSession("sid");
-      expect(result).toEqual({ userId: "uid", role: "user", email: "test@example.com" });
+      expect(result).toEqual({
+        userId: "uid",
+        role: "user",
+        email: "test@example.com",
+      });
     });
 
     it("should throw if session not found", async () => {
@@ -181,7 +183,9 @@ describe("AuthService", () => {
     });
 
     it("should throw if session is not active", async () => {
-      mockDb.query.authSessions.findFirst.mockResolvedValue({ status: "expired" });
+      mockDb.query.authSessions.findFirst.mockResolvedValue({
+        status: "expired",
+      });
       await expect(service.validateSession("sid")).rejects.toThrow(UnauthorizedException);
     });
 
@@ -189,7 +193,7 @@ describe("AuthService", () => {
       mockDb.query.authSessions.findFirst.mockResolvedValue({
         status: "active",
         expiresAt: new Date(Date.now() - 1000), // Expired
-        authSessionId: "sid"
+        authSessionId: "sid",
       });
 
       mockDb.update.mockReturnThis();

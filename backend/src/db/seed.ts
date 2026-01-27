@@ -50,7 +50,7 @@ async function main() {
   const clients = await db.query.clients.findMany();
   const topics = await db.query.topics.findMany();
 
-  const pwdHash = await hash("Password@123")
+  const pwdHash = await hash("Password@123");
 
   console.log("Seeding authMethods...");
   const authMethodsData = users.map((user) => ({
@@ -75,16 +75,12 @@ async function main() {
 
   let createdWebhooks: (typeof schema.webhooks.$inferSelect)[] = [];
   if (webhooksData.length > 0) {
-    createdWebhooks = await db
-      .insert(schema.webhooks)
-      .values(webhooksData)
-      .returning();
+    createdWebhooks = await db.insert(schema.webhooks).values(webhooksData).returning();
   }
 
   console.log("Seeding webhook subscriptions...");
   // Subscribe first webhook to first topic, etc.
-  const subscriptionsData: (typeof schema.webhookSubscriptions.$inferInsert)[] =
-    [];
+  const subscriptionsData: (typeof schema.webhookSubscriptions.$inferInsert)[] = [];
   if (createdWebhooks.length > 0 && topics.length > 0) {
     createdWebhooks.forEach((webhook, idx) => {
       // Subscribe to all topics or random? Let's just subscribe to one topic per webhook to be safe and simple
@@ -111,7 +107,9 @@ async function main() {
       topicId: topic.topicId,
       eventPayload: { test: "data", timestamp: new Date().toISOString() },
       eventTimestamp: new Date(),
-      webhookIdempotencyKey: Date.now().toString().concat("-" + Math.random().toString(36).substring(7)),
+      webhookIdempotencyKey: Date.now()
+        .toString()
+        .concat("-" + Math.random().toString(36).substring(7)),
     }));
     await db.insert(schema.webhookEvents).values(eventsData);
 
@@ -132,18 +130,21 @@ async function main() {
   }
 
   console.log("Seeding app config...");
-  await db.insert(schema.appConfig).values([
-    {
-      key: "maintenance_mode",
-      value: { enabled: false },
-      isActive: true,
-    },
-    {
-      key: "feature_flags",
-      value: { new_dashboard: true },
-      isActive: true,
-    },
-  ]).onConflictDoNothing();
+  await db
+    .insert(schema.appConfig)
+    .values([
+      {
+        key: "maintenance_mode",
+        value: { enabled: false },
+        isActive: true,
+      },
+      {
+        key: "feature_flags",
+        value: { new_dashboard: true },
+        isActive: true,
+      },
+    ])
+    .onConflictDoNothing();
 }
 
 main()

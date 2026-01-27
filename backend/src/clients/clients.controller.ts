@@ -1,14 +1,4 @@
-import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Patch,
-    Post,
-    Query,
-    UseGuards,
-    UseInterceptors,
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ClientsService } from "./clients.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { UpdateClientDto } from "./dto/update-client.dto";
@@ -23,63 +13,65 @@ import { ApiStandardResponse } from "@/common/decorators/api-standard-response.d
 @ApiBearerAuth()
 @ApiStandardResponse()
 @Controller("clients")
-
 @UseGuards(AuthGuard)
 export class ClientsController {
-    constructor(private readonly clientsService: ClientsService) { }
+  constructor(private readonly clientsService: ClientsService) {}
 
-    @Post()
-    @ApiOperation({
-        summary: "Register a new client",
-        description: "Creates a new client record in the system using the provided name and slug. Returns the created client details.",
-        operationId: "createClient",
-    })
-    @ApiResponse({
-        type: ClientResponseDto,
-        status: 201,
-        description: "Client created successfully",
-    })
-    create(@Body() createClientDto: CreateClientDto) {
-        return this.clientsService.create(createClientDto);
-    }
+  @Post()
+  @ApiOperation({
+    summary: "Register a new client",
+    description:
+      "Creates a new client record in the system using the provided name and slug. Returns the created client details.",
+    operationId: "createClient",
+  })
+  @ApiResponse({
+    type: ClientResponseDto,
+    status: 201,
+    description: "Client created successfully",
+  })
+  create(@Body() createClientDto: CreateClientDto) {
+    return this.clientsService.create(createClientDto);
+  }
 
-    @Get()
-    @ApiOperation({
-        summary: "List clients with pagination",
-        description: "Retrieves a paginated list of clients. Supports `page` and `limit` query parameters. Returns client data along with pagination metadata.",
-        operationId: "listClients",
-    })
-    findAll(@Query() query: ListClientsDto) {
-        return this.clientsService.findAll(query);
-    }
+  @Get()
+  @ApiOperation({
+    summary: "List clients with pagination",
+    description:
+      "Retrieves a paginated list of clients. Supports `page` and `limit` query parameters. Returns client data along with pagination metadata.",
+    operationId: "listClients",
+  })
+  findAll(@Query() query: ListClientsDto) {
+    return this.clientsService.findAll(query);
+  }
 
-    @Get(":id")
-    @ApiOperation({
-        summary: "Retrieve client details",
-        description: "Fetches the details of a specific client identified by their UUID.",
-        operationId: "getClientById",
-    })
-    @ApiResponse({
-        type: ClientResponseDto,
-        status: 200,
-        description: "Client details retrieved successfully",
-    })
-    findOne(@Param("id") id: string) {
-        return this.clientsService.findOne(id);
-    }
+  @Get(":id")
+  @ApiOperation({
+    summary: "Retrieve client details",
+    description: "Fetches the details of a specific client identified by their UUID.",
+    operationId: "getClientById",
+  })
+  @ApiResponse({
+    type: ClientResponseDto,
+    status: 200,
+    description: "Client details retrieved successfully",
+  })
+  findOne(@Param("id") id: string) {
+    return this.clientsService.findOne(id);
+  }
 
-    @Patch(":id")
-    @ApiOperation({
-        summary: "Update client information",
-        description: "Updates the details of an existing client. Only provided fields are updated. Automatically updates the `updatedAt` timestamp.",
-        operationId: "updateClient",
-    })
-    @ApiResponse({
-        type: ClientResponseDto,
-        status: 200,
-        description: "Client updated successfully",
-    })
-    update(@Param("id") id: string, @Body() updateClientDto: UpdateClientDto) {
-        return this.clientsService.update(id, updateClientDto);
-    }
+  @Patch(":id")
+  @ApiOperation({
+    summary: "Update client information",
+    description:
+      "Updates the details of an existing client. Only provided fields are updated. Automatically updates the `updatedAt` timestamp.",
+    operationId: "updateClient",
+  })
+  @ApiResponse({
+    type: ClientResponseDto,
+    status: 200,
+    description: "Client updated successfully",
+  })
+  update(@Param("id") id: string, @Body() updateClientDto: UpdateClientDto) {
+    return this.clientsService.update(id, updateClientDto);
+  }
 }

@@ -21,22 +21,22 @@ export class AuthService {
     private readonly pwdHasher: PasswordHasher,
     @Inject() private readonly config: EnvDto,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
-  async login(email: string, password: string): Promise<{ accessToken: string, refreshToken: string }> {
+  async login(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.db.query.users.findFirst({
       where: eq(schema.users.email, email),
       columns: {
         userId: true,
         status: true,
         email: true,
-        role: true
+        role: true,
       },
       with: {
         authMethods: {
-          where: eq(schema.authMethods.methodType, "password")
-        }
-      }
+          where: eq(schema.authMethods.methodType, "password"),
+        },
+      },
     });
 
     if (!user || user.status !== "active" || user.authMethods.length <= 0) {
@@ -57,14 +57,14 @@ export class AuthService {
     return this.createSession(user.userId);
   }
 
-  async refresh(refreshToken: string): Promise<{ accessToken: string, refreshToken: string }> {
+  async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     const lookupHash = this.pwdHasher.lookupHash(refreshToken);
 
     const existingSession = await this.db.query.refreshTokenSessions.findFirst({
       where: eq(schema.refreshTokenSessions.lookupHash, lookupHash),
       with: {
-        authSession: true
-      }
+        authSession: true,
+      },
     });
 
     if (!existingSession) {
@@ -82,7 +82,11 @@ export class AuthService {
     }
 
     // Check if the underlying auth session is still valid
-    if (!existingSession.authSession || existingSession.authSession.status !== "active" || new Date() > existingSession.authSession.expiresAt) {
+    if (
+      !existingSession.authSession ||
+      existingSession.authSession.status !== "active" ||
+      new Date() > existingSession.authSession.expiresAt
+    ) {
       throw new UnauthorizedException("Session expired");
     }
 
@@ -93,9 +97,12 @@ export class AuthService {
 
     // Rotate: Invalidate old refresh session, create new one attached to SAME auth session
     await this.db.transaction(async (tx) => {
-      await tx.update(schema.refreshTokenSessions).set({
-        rotatedAt: new Date(),
-      }).where(eq(schema.refreshTokenSessions.refreshTokenSessionId, existingSession.refreshTokenSessionId));
+      await tx
+        .update(schema.refreshTokenSessions)
+        .set({
+          rotatedAt: new Date(),
+        })
+        .where(eq(schema.refreshTokenSessions.refreshTokenSessionId, existingSession.refreshTokenSessionId));
 
       await tx.insert(schema.refreshTokenSessions).values({
         tokenHash: newRefreshTokenHash,
@@ -105,7 +112,10 @@ export class AuthService {
       });
     });
 
-    const payload = { uId: existingSession.authSession.userId, authSessionId: existingSession.authSessionId };
+    const payload = {
+      uId: existingSession.authSession.userId,
+      authSessionId: existingSession.authSessionId,
+    };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -114,17 +124,20 @@ export class AuthService {
     };
   }
 
-  private async createSession(userId: string): Promise<{ accessToken: string, refreshToken: string }> {
+  private async createSession(userId: string): Promise<{ accessToken: string; refreshToken: string }> {
     const refreshToken = this.pwdHasher.createToken();
     const refreshTokenHash = await this.pwdHasher.hash(refreshToken);
     const lookupHash = this.pwdHasher.lookupHash(refreshToken);
 
     const response = await this.db.transaction(async (tx) => {
-      const authSessionRaw = await tx.insert(schema.authSessions).values({
-        expiresAt: new Date(Date.now() + this.config.AUTH_SESSION_VALIDITY_IN_SECONDS * 1000),
-        userId: userId,
-        status: "active",
-      }).returning({ authSessionId: schema.authSessions.authSessionId });
+      const authSessionRaw = await tx
+        .insert(schema.authSessions)
+        .values({
+          expiresAt: new Date(Date.now() + this.config.AUTH_SESSION_VALIDITY_IN_SECONDS * 1000),
+          userId: userId,
+          status: "active",
+        })
+        .returning({ authSessionId: schema.authSessions.authSessionId });
 
       const authSessionId = authSessionRaw.at(0)?.authSessionId;
 
@@ -161,7 +174,8 @@ export class AuthService {
     }
 
     if (new Date() > session.expiresAt) {
-      await this.db.update(schema.authSessions)
+      await this.db
+        .update(schema.authSessions)
         .set({ status: "expired" })
         .where(eq(schema.authSessions.authSessionId, authSessionId));
 

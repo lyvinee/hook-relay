@@ -69,9 +69,7 @@ describe("AuthController", () => {
       const req = { cookies: {} } as unknown as Request;
       const res = { cookie: jest.fn() } as unknown as Response;
 
-      await expect(controller.refresh(req, res)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(controller.refresh(req, res)).rejects.toThrow(UnauthorizedException);
     });
 
     it("should rotate info and return new access token", async () => {

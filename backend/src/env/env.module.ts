@@ -48,15 +48,18 @@ import * as schema from "@/db/schema";
             throw new Error("Env validation failed");
           }
 
-          await db.insert(schema.appConfig)
+          await db
+            .insert(schema.appConfig)
             .values(
-              Object.entries(parsed)
-                .map(([key, value]) => ({ key, value: String(value), isActive: true })
-                )
-            ).onConflictDoNothing({ target: schema.appConfig.key });
+              Object.entries(parsed).map(([key, value]) => ({
+                key,
+                value: String(value),
+                isActive: true,
+              })),
+            )
+            .onConflictDoNothing({ target: schema.appConfig.key });
 
           return parsed;
-
         } catch (error) {
           console.error("Error fetching env from database, exiting...", error);
           process.exit(1);
@@ -66,4 +69,4 @@ import * as schema from "@/db/schema";
   ],
   exports: [EnvDto],
 })
-export class EnvModule { }
+export class EnvModule {}

@@ -1,17 +1,21 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { EnvDto } from "@/env/dto/envDto";
+import { EnvDto, Environment } from "@/env/dto/envDto";
 
 import { ValidationPipe } from "@nestjs/common";
-
 
 import { HttpExceptionFilter } from "@/common/filters/http-exception.filter";
 
 import cookieParser from "cookie-parser";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: ["http://localhost:5173"],
+      credentials: true,
+    },
+  });
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -35,14 +39,13 @@ async function bootstrap() {
     .build();
 
   const docFactory = SwaggerModule.createDocument(app, doc);
-  // @ts-ignore
   docFactory.openapi = "3.1.0";
 
   const env = app.get(EnvDto);
   const port = env.PORT;
   const mode = env.NODE_ENV;
 
-  if (mode === "development") {
+  if (mode === Environment.Development) {
     SwaggerModule.setup("swagger", app, docFactory, {
       jsonDocumentUrl: "swagger/json",
     });

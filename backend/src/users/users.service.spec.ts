@@ -36,10 +36,7 @@ describe("UsersService", () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        { provide: DRIZZLE, useValue: dbMock },
-      ],
+      providers: [UsersService, { provide: DRIZZLE, useValue: dbMock }],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
@@ -60,7 +57,10 @@ describe("UsersService", () => {
 
   describe("findAll", () => {
     it("should return paginated users", async () => {
-      dbMock.select().from().where.mockResolvedValueOnce([{ count: 1 }]);
+      dbMock
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }]);
       const result = await service.findAll({ page: 1, limit: 10 });
       expect(result.data).toEqual([mockUser]);
       expect(result.meta.total).toBe(1);
@@ -91,9 +91,7 @@ describe("UsersService", () => {
 
     it("should throw NotFoundException if user not found during update", async () => {
       dbMock.returning.mockResolvedValueOnce([]);
-      await expect(service.update("uuid", { email: "updated@example.com" })).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.update("uuid", { email: "updated@example.com" })).rejects.toThrow(NotFoundException);
     });
   });
 

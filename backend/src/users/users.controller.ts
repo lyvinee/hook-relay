@@ -14,7 +14,7 @@ import { UserResponseDto } from "./dto/user-response.dto";
 @UseGuards(AuthGuard)
 @Controller("users")
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @ApiOperation({

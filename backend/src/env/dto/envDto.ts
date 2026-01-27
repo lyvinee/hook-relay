@@ -53,6 +53,6 @@ export const saneDefaults: Record<string, any> = {
   AUTH_SESSION_VALIDITY_IN_SECONDS: process.env.AUTH_SESSION_VALIDITY_IN_SECONDS || (60 * 60 * 24 * 14).toString(),
   REFRESH_TOKEN_VALIDITY_IN_SECONDS: process.env.REFRESH_TOKEN_VALIDITY_IN_SECONDS || (60 * 60 * 24 * 30).toString(),
   WEBHOOK_DELIVERY_CONCURRENCY: process.env.WEBHOOK_DELIVERY_CONCURRENCY || "3",
-  REDIS_HOST: process.env.REDIS_HOST || 'localhost',
-  REDIS_PORT: process.env.REDIS_PORT || '6379',
+  REDIS_HOST: process.env.REDIS_HOST || "localhost",
+  REDIS_PORT: process.env.REDIS_PORT || "6379",
 };

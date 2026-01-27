@@ -5,8 +5,8 @@ import { DatabaseModule } from "@/database/database.module";
 import { AuthModule } from "@/auth/auth.module";
 
 @Module({
-    imports: [DatabaseModule, AuthModule],
-    controllers: [WebhooksController],
-    providers: [WebhooksService],
+  imports: [DatabaseModule, AuthModule],
+  controllers: [WebhooksController],
+  providers: [WebhooksService],
 })
-export class WebhooksModule { }
+export class WebhooksModule {}
