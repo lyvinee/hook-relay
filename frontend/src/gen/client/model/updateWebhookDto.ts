@@ -14,8 +14,6 @@ export interface UpdateWebhookDto {
   endpointName?: string;
   /** The URL to send the webhook payload to */
   targetUrl?: string;
-  /** Secret for HMAC signature verification */
-  hmacSecret?: string;
   /** Retry policy configuration */
   retryPolicy?: UpdateWebhookDtoRetryPolicy;
   /** Request timeout in milliseconds */

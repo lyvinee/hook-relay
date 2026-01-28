@@ -31,15 +31,6 @@ export class CreateWebhookDto {
   @MaxLength(200)
   targetUrl: string;
 
-  @ApiProperty({
-    description: "Secret for HMAC signature verification",
-    required: false,
-  })
-  @IsString()
-  @MaxLength(200)
-  @IsOptional()
-  hmacSecret?: string;
-
   @ApiProperty({ description: "Retry policy configuration", required: false })
   @IsObject()
   @IsOptional()

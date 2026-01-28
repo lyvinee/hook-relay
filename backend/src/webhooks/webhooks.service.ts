@@ -5,15 +5,26 @@ import { CreateWebhookDto } from "./dto/create-webhook.dto";
 import { UpdateWebhookDto } from "./dto/update-webhook.dto";
 import { ListWebhooksDto } from "./dto/list-webhooks.dto";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import * as crypto from "crypto";
 
 @Injectable()
 export class WebhooksService {
-  constructor(@Inject(DRIZZLE) private readonly db: DbType) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DbType) { }
 
   async create(createWebhookDto: CreateWebhookDto) {
     try {
-      const [webhook] = await this.db.insert(schema.webhooks).values(createWebhookDto).returning();
-      return webhook;
+      const hmacSecret = crypto.randomBytes(32).toString("hex");
+      const [webhook] = await this.db
+        .insert(schema.webhooks)
+        .values({
+          ...createWebhookDto,
+          hmacSecret,
+        })
+        .returning({
+          webhookId: schema.webhooks.webhookId,
+
+        });
+      return { webhookId: webhook.webhookId, hmacSecret };
     } catch (error: any) {
       // Postgres error code 23505 is for unique_violation
       if (error?.code === "23505") {

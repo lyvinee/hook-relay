@@ -4,6 +4,20 @@ import * as schema from "./schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { hash } from "argon2";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 async function main() {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) {
@@ -38,96 +52,74 @@ async function main() {
       users: schema.users,
       clients: schema.clients,
       topics: schema.topics,
+      appConfig: schema.appConfig,
     })
     .refine((f) => ({
-      users: { count: 10 },
-      clients: { count: 5 },
-      topics: { count: 5 },
+      users: {
+        count: 10,
+        columns: {
+          userId: f.uuid(),
+        },
+      },
+      clients: {
+        count: 5,
+        columns: {
+          clientId: f.uuid(),
+        },
+      },
+      topics: {
+        count: 5,
+        columns: {
+          topicId: f.uuid(),
+        },
+      },
+      appConfig: {
+        count: 2,
+      },
     }));
 
-  // Manual seeding for tables with unique constraints
-  const users = await db.query.users.findMany();
-  const clients = await db.query.clients.findMany();
-  const topics = await db.query.topics.findMany();
 
   const pwdHash = await hash("Password@123");
 
+  const users = await db.query.users.findMany();
+
   console.log("Seeding authMethods...");
-  const authMethodsData = users.map((user) => ({
+  await db.insert(schema.authMethods).values(users.map((user) => ({
     userId: user.userId,
     methodType: schema.authMethodType.enumValues[0], // 'password'
     secretHash: pwdHash,
     isPrimary: true,
     isVerified: true,
-  }));
-  if (authMethodsData.length > 0) {
-    await db.insert(schema.authMethods).values(authMethodsData);
-  }
+  })));
+
+
+  // seed webhooks
+  const clients = await db.query.clients.findMany();
 
   console.log("Seeding webhooks...");
-  const webhooksData = clients.map((client) => ({
-    clientId: client.clientId,
-    endpointName: `Endpoint for ${client.name}`,
-    targetUrl: `https://example.com/webhook/${client.slugName}`,
-    hmacSecret: "whsec_" + Math.random().toString(36).substring(7),
-    isActive: true,
-  }));
+  const webhooks = await db
+    .insert(schema.webhooks)
+    .values(
+      clients.map(c => ({
+        clientId: c.clientId,
+        endpointName: `Endpoint for ${c.name}`,
+        targetUrl: `https://example.com/webhook/${c.slugName}`,
+        isActive: true,
+      })),
+    )
+    .returning();
 
-  let createdWebhooks: (typeof schema.webhooks.$inferSelect)[] = [];
-  if (webhooksData.length > 0) {
-    createdWebhooks = await db.insert(schema.webhooks).values(webhooksData).returning();
-  }
+  // webhook subscriptions
+  const topics = await db.query.topics.findMany();
 
   console.log("Seeding webhook subscriptions...");
-  // Subscribe first webhook to first topic, etc.
-  const subscriptionsData: (typeof schema.webhookSubscriptions.$inferInsert)[] = [];
-  if (createdWebhooks.length > 0 && topics.length > 0) {
-    createdWebhooks.forEach((webhook, idx) => {
-      // Subscribe to all topics or random? Let's just subscribe to one topic per webhook to be safe and simple
-      const topic = topics[idx % topics.length];
-      subscriptionsData.push({
-        webhookId: webhook.webhookId,
-        topicId: topic.topicId,
-        isActive: true,
-      });
-    });
-    await db.insert(schema.webhookSubscriptions).values(subscriptionsData);
-  } else {
-    console.log("Skipping subscriptions (no webhooks or topics)");
-  }
-
-  // Seed events manually if needed, or skip. User complained about constraints preventing seeding "most stuff".
-  // Let's seed some events for the first webhook
-  if (createdWebhooks.length > 0 && topics.length > 0) {
-    console.log("Seeding webhook events...");
-    const webhook = createdWebhooks[0];
-    const topic = topics[0];
-    const eventsData = Array.from({ length: 10 }).map(() => ({
-      webhookId: webhook.webhookId,
-      topicId: topic.topicId,
-      eventPayload: { test: "data", timestamp: new Date().toISOString() },
-      eventTimestamp: new Date(),
-      webhookIdempotencyKey: Date.now()
-        .toString()
-        .concat("-" + Math.random().toString(36).substring(7)),
-    }));
-    await db.insert(schema.webhookEvents).values(eventsData);
-
-    console.log("Seeding webhook deliveries...");
-    const createdEvents = await db.query.webhookEvents.findMany();
-    if (createdEvents.length > 0) {
-      const deliveriesData = createdEvents.map((event) => ({
-        webhookEventId: event.webhookEventId,
-        deliveryPayload: event.eventPayload,
-        deliveryTimestamp: new Date(),
-        deliveryStatus: schema.webhookDeliveryStatus.enumValues[1], // 'success'
-        deliveryAttempts: 1,
-        deliveryResponseStatus: 200,
-        deliveryResponse: { status: "ok" },
-      }));
-      await db.insert(schema.webhookDeliveries).values(deliveriesData);
-    }
-  }
+  await db.insert(schema.webhookSubscriptions).values(
+    webhooks.map((w, i) => ({
+      webhookId: w.webhookId,
+      topicId: topics[i % topics.length].topicId,
+      isActive: true,
+    })),
+  );
 
   console.log("Seeding app config...");
   await db

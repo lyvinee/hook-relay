@@ -20,6 +20,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed:db": "ts-node src/db/seed.ts",
+    "seed:manual": "ts-node src/db/mainSeed.ts",
     "prepare": "husky"
   },
   "dependencies": {

@@ -29,6 +29,7 @@ import type {
   ClientResponseDto,
   CreateClientDto,
   ListClientsParams,
+  PaginatedClientResponseDto,
   UpdateClientDto,
 } from ".././model";
 
@@ -119,7 +120,7 @@ export const useCreateClient = <
 export const listClients = (
   params?: ListClientsParams,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedClientResponseDto>> => {
   return axios.default.get(`/clients`, {
     ...options,
     params: { ...params, ...options?.params },

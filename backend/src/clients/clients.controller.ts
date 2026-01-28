@@ -3,7 +3,7 @@ import { ClientsService } from "./clients.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { UpdateClientDto } from "./dto/update-client.dto";
 import { ListClientsDto } from "./dto/list-clients.dto";
-import { ClientResponseDto } from "./dto/client-response.dto";
+import { ClientResponseDto, PaginatedClientResponseDto } from "./dto/client-response.dto";
 import { ApiResponse } from "@nestjs/swagger";
 import { AuthGuard } from "@/common/guards/auth.guard";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
@@ -15,7 +15,7 @@ import { ApiStandardResponse } from "@/common/decorators/api-standard-response.d
 @Controller("clients")
 @UseGuards(AuthGuard)
 export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+  constructor(private readonly clientsService: ClientsService) { }
 
   @Post()
   @ApiOperation({
@@ -39,6 +39,11 @@ export class ClientsController {
     description:
       "Retrieves a paginated list of clients. Supports `page` and `limit` query parameters. Returns client data along with pagination metadata.",
     operationId: "listClients",
+  })
+  @ApiResponse({
+    type: PaginatedClientResponseDto,
+    status: 200,
+    description: "List of clients retrieved successfully",
   })
   findAll(@Query() query: ListClientsDto) {
     return this.clientsService.findAll(query);
