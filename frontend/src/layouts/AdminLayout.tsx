@@ -20,6 +20,7 @@ const AdminLayout: React.FC = () => {
                     {/* Core Features (Accessing as Admin or shared view) */}
                     <div className="divider text-xs">System Views</div>
                     <li><Link to={navigations.webhooks}>Webhooks</Link></li>
+                    <li><Link to={navigations.topics}>Topics</Link></li>
                     <li><Link to={navigations.events}>Events</Link></li>
                     <li><Link to={navigations.deliveries}>Deliveries</Link></li>
                     <li><Link to={navigations.dlq}>DLQ</Link></li>

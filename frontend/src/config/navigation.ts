@@ -15,6 +15,11 @@ export const navigations = {
     events: '/dashboard/events',
     event: (eventId: string) => `/dashboard/events/${eventId}`,
 
+    // Topics
+    topics: "/dashboard/topics",
+    topic: (topicId: string) => `/dashboard/topics/${topicId}`,
+    topicNew: "/dashboard/topics/new",
+
     // Deliveries
     deliveries: '/dashboard/deliveries',
     delivery: (deliveryId: string) => `/dashboard/deliveries/${deliveryId}`,
@@ -25,7 +30,8 @@ export const navigations = {
     // Admin Only - Clients
     clients: '/dashboard/clients',
     createClient: '/dashboard/clients/new',
-    client: (clientId: string) => `/dashboard/clients/${clientId}`,
+    clientView: (clientId: string) => `/dashboard/clients/view/${clientId}`,
+    clientEdit: (clientId: string) => `/dashboard/clients/edit/${clientId}`,
 
     // Admin Only - Users
     users: '/dashboard/users',

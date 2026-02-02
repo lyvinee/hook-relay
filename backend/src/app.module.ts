@@ -18,6 +18,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { JobsModule } from "./jobs/jobs.module";
 import { WebhookDeliveryModule } from "./webhook-delivery/webhook-delivery.module";
 import { WebhookDlqModule } from "./webhook-dlq/webhook-dlq.module";
+import { TopicsModule } from "./topics/topics.module";
 
 @Module({
   imports: [
@@ -43,8 +44,9 @@ import { WebhookDlqModule } from "./webhook-dlq/webhook-dlq.module";
     JobsModule,
     WebhookDeliveryModule,
     WebhookDlqModule,
+    TopicsModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService, NotificationService],
 })
-export class AppModule {}
+export class AppModule { }

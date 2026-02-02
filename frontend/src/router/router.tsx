@@ -7,9 +7,6 @@ import ComponentLab from '../pages/dev/ComponentLab';
 import NotFound from '../pages/NotFound';
 
 import DashboardLayout from '../layouts/DashboardLayout';
-import ClientCreate from '../pages/admin/clients/ClientCreate';
-import ClientDetail from '../pages/admin/clients/ClientDetail';
-import ClientList from '../pages/admin/clients/ClientList';
 import UserCreate from '../pages/admin/users/UserCreate';
 import UserDetail from '../pages/admin/users/UserDetail';
 import UserList from '../pages/admin/users/UserList';
@@ -18,11 +15,19 @@ import DeliveryDetail from '../pages/deliveries/DeliveryDetail';
 import DeliveryList from '../pages/deliveries/DeliveryList';
 import DlqList from '../pages/dlq/DlqList';
 import EventDetail from '../pages/events/EventDetail';
-import EventList from '../pages/events/EventList';
+import EventCreate from "../pages/events/EventCreate";
+import TopicList from "../pages/topics/TopicList";
+import TopicCreate from "../pages/topics/TopicCreate";
+import TopicDetail from "../pages/topics/TopicDetail";
+import EventList from '../pages/events/EventList'; // Keep this
 import Profile from '../pages/profile/Profile';
 import WebhookCreate from '../pages/webhooks/WebhookCreate';
 import WebhookDetails from '../pages/webhooks/WebhookDetails';
 import WebhookList from '../pages/webhooks/WebhookList';
+import ClientList from '../pages/clients/ClientList';
+import CreateClient from '../pages/clients/CreateClient';
+import ClientDetails from '../pages/clients/ClientDetails';
+import ClientEdit from '../pages/clients/ClientEdit';
 
 const router = createBrowserRouter([
     {
@@ -59,9 +64,18 @@ const router = createBrowserRouter([
                         ],
                     },
                     {
+                        path: 'topics',
+                        children: [
+                            { index: true, element: <TopicList /> },
+                            { path: 'new', element: <TopicCreate /> },
+                            { path: ':id', element: <TopicDetail /> },
+                        ],
+                    },
+                    {
                         path: 'events',
                         children: [
                             { index: true, element: <EventList /> },
+                            { path: 'new', element: <EventCreate /> },
                             { path: ':eventId', element: <EventDetail /> },
                         ],
                     },
@@ -80,8 +94,9 @@ const router = createBrowserRouter([
                         path: 'clients',
                         children: [
                             { index: true, element: <ClientList /> },
-                            { path: 'new', element: <ClientCreate /> },
-                            { path: ':clientId', element: <ClientDetail /> },
+                            { path: 'new', element: <CreateClient /> },
+                            { path: 'view/:id', element: <ClientDetails /> },
+                            { path: 'edit/:id', element: <ClientEdit /> },
                         ],
                     },
                     {

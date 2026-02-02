@@ -3005,6 +3005,178 @@
           "Webhook DLQ"
         ]
       }
+    },
+    "/topics": {
+      "post": {
+        "operationId": "TopicsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTopicDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The topic has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a new topic",
+        "tags": [
+          "topics"
+        ]
+      },
+      "get": {
+        "operationId": "TopicsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return all active topics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTopicResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List all active topics",
+        "tags": [
+          "topics"
+        ]
+      }
+    },
+    "/topics/{id}": {
+      "get": {
+        "operationId": "TopicsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the topic.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a topic by id",
+        "tags": [
+          "topics"
+        ]
+      },
+      "patch": {
+        "operationId": "TopicsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTopicDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The topic has been successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update a topic",
+        "tags": [
+          "topics"
+        ]
+      },
+      "delete": {
+        "operationId": "TopicsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The topic has been successfully deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Soft delete a topic",
+        "tags": [
+          "topics"
+        ]
+      }
     }
   },
   "info": {
@@ -3678,6 +3850,103 @@
             "default": "user"
           }
         }
+      },
+      "CreateTopicDto": {
+        "type": "object",
+        "properties": {
+          "topicName": {
+            "type": "string",
+            "description": "Display name of the topic"
+          },
+          "topicSlugId": {
+            "type": "string",
+            "description": "Unique slug/key for the topic"
+          }
+        },
+        "required": [
+          "topicName",
+          "topicSlugId"
+        ]
+      },
+      "TopicDto": {
+        "type": "object",
+        "properties": {
+          "topicId": {
+            "type": "string",
+            "description": "Unique ID of the topic"
+          },
+          "topicName": {
+            "type": "string",
+            "description": "Display name of the topic"
+          },
+          "topicSlugId": {
+            "type": "string",
+            "description": "Unique slug/key for the topic"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the topic is active"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "topicId",
+          "topicName",
+          "topicSlugId",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedTopicResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "List of topics",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopicDto"
+            }
+          },
+          "meta": {
+            "description": "Pagination metadata",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateTopicDto": {
+        "type": "object",
+        "properties": {
+          "topicName": {
+            "type": "string",
+            "description": "Display name of the topic"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the topic is active"
+          }
+        },
+        "required": [
+          "topicName",
+          "isActive"
+        ]
       }
     }
   },
