@@ -68,6 +68,18 @@ export class WebhooksService {
       limit: limit,
       offset: offset,
       orderBy: (webhooks, { desc }) => [desc(webhooks.createdAt)],
+      // Exclude hmacSecret from the result
+      columns: {
+        webhookId: true,
+        clientId: true,
+        endpointName: true,
+        targetUrl: true,
+        retryPolicy: true,
+        timeoutMs: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      }
     });
 
     return {
@@ -84,6 +96,18 @@ export class WebhooksService {
   async findOne(id: string) {
     const webhook = await this.db.query.webhooks.findFirst({
       where: eq(schema.webhooks.webhookId, id),
+      // Exclude hmacSecret from the result
+      columns: {
+        webhookId: true,
+        clientId: true,
+        endpointName: true,
+        targetUrl: true,
+        retryPolicy: true,
+        timeoutMs: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      }
     });
 
     if (!webhook) {
@@ -101,7 +125,17 @@ export class WebhooksService {
         updatedAt: new Date(),
       })
       .where(eq(schema.webhooks.webhookId, id))
-      .returning();
+      .returning({
+        webhookId: schema.webhooks.webhookId,
+        clientId: schema.webhooks.clientId,
+        endpointName: schema.webhooks.endpointName,
+        targetUrl: schema.webhooks.targetUrl,
+        retryPolicy: schema.webhooks.retryPolicy,
+        timeoutMs: schema.webhooks.timeoutMs,
+        isActive: schema.webhooks.isActive,
+        createdAt: schema.webhooks.createdAt,
+        updatedAt: schema.webhooks.updatedAt,
+      });
 
     if (!updatedWebhook) {
       throw new NotFoundException(`Webhook with ID ${id} not found`);

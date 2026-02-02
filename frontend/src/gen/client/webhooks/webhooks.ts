@@ -28,8 +28,10 @@ import type {
   ApiErrorDto,
   CreateWebhookDto,
   ListWebhooksParams,
+  PaginatedWebhookResponseDto,
   UpdateWebhookDto,
-  WebhookResponseDto,
+  WebhookCreatedDto,
+  WebhookDto,
 } from ".././model";
 
 /**
@@ -39,7 +41,7 @@ import type {
 export const createWebhook = (
   createWebhookDto: CreateWebhookDto,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<WebhookResponseDto>> => {
+): Promise<AxiosResponse<WebhookCreatedDto>> => {
   return axios.default.post(`/webhooks`, createWebhookDto, options);
 };
 
@@ -119,7 +121,7 @@ export const useCreateWebhook = <
 export const listWebhooks = (
   params?: ListWebhooksParams,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedWebhookResponseDto>> => {
   return axios.default.get(`/webhooks`, {
     ...options,
     params: { ...params, ...options?.params },
@@ -259,7 +261,7 @@ export function useListWebhooks<
 export const getWebhookById = (
   id: string,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<WebhookResponseDto>> => {
+): Promise<AxiosResponse<WebhookDto>> => {
   return axios.default.get(`/webhooks/${id}`, options);
 };
 
@@ -402,7 +404,7 @@ export const updateWebhook = (
   id: string,
   updateWebhookDto: UpdateWebhookDto,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<WebhookResponseDto>> => {
+): Promise<AxiosResponse<WebhookDto>> => {
   return axios.default.patch(`/webhooks/${id}`, updateWebhookDto, options);
 };
 

@@ -3,7 +3,7 @@ import { WebhooksService } from "./webhooks.service";
 import { CreateWebhookDto } from "./dto/create-webhook.dto";
 import { UpdateWebhookDto } from "./dto/update-webhook.dto";
 import { ListWebhooksDto } from "./dto/list-webhooks.dto";
-import { WebhookResponseDto } from "./dto/webhook-response.dto";
+import { WebhookCreatedDto, WebhookDto, PaginatedWebhookResponseDto } from "./dto/webhook-response.dto";
 import { ApiResponse } from "@nestjs/swagger";
 import { AuthGuard } from "@/common/guards/auth.guard";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
@@ -15,7 +15,7 @@ import { ApiStandardResponse } from "@/common/decorators/api-standard-response.d
 @Controller("webhooks")
 @UseGuards(AuthGuard)
 export class WebhooksController {
-  constructor(private readonly webhooksService: WebhooksService) {}
+  constructor(private readonly webhooksService: WebhooksService) { }
 
   @Post()
   @ApiOperation({
@@ -24,7 +24,7 @@ export class WebhooksController {
     operationId: "createWebhook",
   })
   @ApiResponse({
-    type: WebhookResponseDto,
+    type: WebhookCreatedDto,
     status: 201,
     description: "Webhook created successfully",
   })
@@ -38,6 +38,11 @@ export class WebhooksController {
     description: "Retrieves a paginated list of registered webhook endpoints for the authenticated client.",
     operationId: "listWebhooks",
   })
+  @ApiResponse({
+    type: PaginatedWebhookResponseDto,
+    status: 200,
+    description: "List of webhooks retrieved successfully",
+  })
   findAll(@Query() query: ListWebhooksDto) {
     return this.webhooksService.findAll(query);
   }
@@ -49,7 +54,7 @@ export class WebhooksController {
     operationId: "getWebhookById",
   })
   @ApiResponse({
-    type: WebhookResponseDto,
+    type: WebhookDto,
     status: 200,
     description: "Webhook details retrieved successfully",
   })
@@ -64,7 +69,7 @@ export class WebhooksController {
     operationId: "updateWebhook",
   })
   @ApiResponse({
-    type: WebhookResponseDto,
+    type: WebhookDto,
     status: 200,
     description: "Webhook updated successfully",
   })

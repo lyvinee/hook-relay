@@ -1677,7 +1677,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookResponseDto"
+                  "$ref": "#/components/schemas/WebhookCreatedDto"
                 }
               }
             }
@@ -1836,7 +1836,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of webhooks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedWebhookResponseDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -1950,7 +1957,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookResponseDto"
+                  "$ref": "#/components/schemas/WebhookDto"
                 }
               }
             }
@@ -2075,7 +2082,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookResponseDto"
+                  "$ref": "#/components/schemas/WebhookDto"
                 }
               }
             }
@@ -3455,7 +3462,7 @@
           "isActive"
         ]
       },
-      "WebhookResponseDto": {
+      "WebhookCreatedDto": {
         "type": "object",
         "properties": {
           "webhookId": {
@@ -3470,6 +3477,87 @@
         "required": [
           "webhookId",
           "hmacSecret"
+        ]
+      },
+      "WebhookDto": {
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "description": "Unique identifier for the webhook"
+          },
+          "clientId": {
+            "type": "string",
+            "description": "The ID of the client owning this webhook"
+          },
+          "endpointName": {
+            "type": "string",
+            "description": "A descriptive name for the endpoint"
+          },
+          "targetUrl": {
+            "type": "string",
+            "description": "The URL to send the webhook payload to"
+          },
+          "retryPolicy": {
+            "type": "object",
+            "description": "Retry policy configuration",
+            "nullable": true
+          },
+          "timeoutMs": {
+            "type": "number",
+            "description": "Request timeout in milliseconds"
+          },
+          "isActive": {
+            "type": "object",
+            "description": "Whether the webhook is active",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Date when the webhook was created",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Date when the webhook was last updated",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "webhookId",
+          "clientId",
+          "endpointName",
+          "targetUrl",
+          "timeoutMs",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedWebhookResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "List of webhooks",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDto"
+            }
+          },
+          "meta": {
+            "description": "Pagination metadata",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "UpdateWebhookDto": {
