@@ -1169,6 +1169,102 @@
         ]
       }
     },
+    "/auth/logout": {
+      "post": {
+        "description": "Invalidates the current session and clears the refresh token cookie.",
+        "operationId": "authLogout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout successful"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Logout user",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/clients": {
       "post": {
         "description": "Creates a new client record in the system using the provided name and slug. Returns the created client details.",
@@ -2654,7 +2750,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Return paginated webhook deliveries.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedWebhookDeliveryResponseDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -2764,7 +2867,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Return the webhook delivery.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -2921,8 +3031,15 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": ""
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedWebhookDlqResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2961,8 +3078,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayWebhookDlqResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2991,8 +3115,15 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": ""
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDlqDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3837,6 +3968,212 @@
           "createdAt"
         ]
       },
+      "WebhookDeliveryDto": {
+        "type": "object",
+        "properties": {
+          "webhookDeliveryId": {
+            "type": "string",
+            "description": "Unique identifier for the webhook delivery"
+          },
+          "webhookEventId": {
+            "type": "string",
+            "description": "ID of the associated webhook event"
+          },
+          "webhookId": {
+            "type": "string",
+            "description": "ID of the destination webhook"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "description": "Delivery status",
+            "enum": [
+              "pending",
+              "success",
+              "failed",
+              "dlq"
+            ]
+          },
+          "statusCode": {
+            "type": "object",
+            "description": "HTTP status code of the response",
+            "nullable": true
+          },
+          "duration": {
+            "type": "object",
+            "description": "Time taken for the request in milliseconds",
+            "nullable": true
+          },
+          "requestPayload": {
+            "type": "object",
+            "description": "Request payload sent",
+            "nullable": true
+          },
+          "requestHeaders": {
+            "type": "object",
+            "description": "Request headers sent",
+            "nullable": true
+          },
+          "responseBody": {
+            "type": "object",
+            "description": "Response body received",
+            "nullable": true
+          },
+          "responseHeaders": {
+            "type": "object",
+            "description": "Response headers received",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "object",
+            "description": "Error message if any",
+            "nullable": true
+          },
+          "nextRetryAt": {
+            "type": "object",
+            "description": "Next scheduled retry time",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "webhookDeliveryId",
+          "webhookEventId",
+          "webhookId",
+          "deliveryStatus",
+          "statusCode",
+          "duration",
+          "requestPayload",
+          "requestHeaders",
+          "responseBody",
+          "responseHeaders",
+          "errorMessage",
+          "nextRetryAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedWebhookDeliveryResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "List of webhook deliveries",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDeliveryDto"
+            }
+          },
+          "meta": {
+            "description": "Pagination metadata",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "WebhookDlqDto": {
+        "type": "object",
+        "properties": {
+          "webhookDlqId": {
+            "type": "string"
+          },
+          "webhookDeliveryId": {
+            "type": "string"
+          },
+          "deliveryPayload": {
+            "type": "object"
+          },
+          "deliveryTimestamp": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deliveryStatus": {
+            "type": "string"
+          },
+          "deliveryAttempts": {
+            "type": "number"
+          },
+          "deliveryRetryAfter": {
+            "type": "object"
+          },
+          "deliveryError": {
+            "type": "object"
+          },
+          "deliveryResponse": {
+            "type": "object"
+          },
+          "deliveryResponseStatus": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string",
+            "description": "Associated Webhook Event ID"
+          },
+          "webhookId": {
+            "type": "string",
+            "description": "Associated Webhook ID"
+          }
+        },
+        "required": [
+          "webhookDlqId",
+          "webhookDeliveryId",
+          "deliveryPayload",
+          "deliveryTimestamp",
+          "deliveryStatus",
+          "deliveryAttempts",
+          "deliveryResponseStatus",
+          "createdAt",
+          "updatedAt",
+          "eventId",
+          "webhookId"
+        ]
+      },
+      "PaginatedWebhookDlqResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "List of DLQ entries",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDlqDto"
+            }
+          },
+          "meta": {
+            "description": "Pagination metadata",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
       "ReplayWebhookDlqDto": {
         "type": "object",
         "properties": {
@@ -3850,6 +4187,22 @@
             "default": "user"
           }
         }
+      },
+      "ReplayWebhookDlqResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Status of the replay action"
+          },
+          "deliveryId": {
+            "type": "string",
+            "description": "ID of the delivery if it already succeeded"
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "CreateTopicDto": {
         "type": "object",

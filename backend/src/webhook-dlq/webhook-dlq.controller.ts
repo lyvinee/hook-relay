@@ -3,14 +3,17 @@ import { WebhookDlqService } from "./webhook-dlq.service";
 import { ListWebhookDlqDto } from "./dto/list-webhook-dlq.dto";
 import { ReplayWebhookDlqDto } from "./dto/replay-webhook-dlq.dto";
 import { AuthGuard } from "@/common/guards/auth.guard";
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiResponse } from "@nestjs/swagger";
+import { PaginatedWebhookDlqResponseDto } from "./dto/paginated-webhook-dlq-response.dto";
+import { WebhookDlqDto } from "./dto/webhook-dlq.dto";
+import { ReplayWebhookDlqResponseDto } from "./dto/replay-webhook-dlq-response.dto";
 
 @ApiTags("Webhook DLQ")
 @ApiBearerAuth()
 @Controller("webhook-dlq")
 @UseGuards(AuthGuard)
 export class WebhookDlqController {
-  constructor(private readonly webhookDlqService: WebhookDlqService) {}
+  constructor(private readonly webhookDlqService: WebhookDlqService) { }
 
   @Get()
   @ApiOperation({
@@ -18,6 +21,7 @@ export class WebhookDlqController {
     description: "Retrieves a paginated list of failed webhook deliveries currently in the Dead Letter Queue.",
     operationId: "listWebhookDlq",
   })
+  @ApiResponse({ type: PaginatedWebhookDlqResponseDto })
   findAll(@Query() query: ListWebhookDlqDto) {
     return this.webhookDlqService.findAll(query);
   }
@@ -29,6 +33,7 @@ export class WebhookDlqController {
     operationId: "replayWebhookDlq",
   })
   @ApiBody({ type: ReplayWebhookDlqDto })
+  @ApiResponse({ type: ReplayWebhookDlqResponseDto })
   replay(@Param("id", ParseUUIDPipe) id: string, @Body() body: ReplayWebhookDlqDto) {
     return this.webhookDlqService.replay(id, body);
   }
@@ -39,6 +44,7 @@ export class WebhookDlqController {
     description: "Fetches details of a specific failed delivery record from the Dead Letter Queue.",
     operationId: "getWebhookDlqById",
   })
+  @ApiResponse({ type: WebhookDlqDto })
   findOne(@Param("id", ParseUUIDPipe) id: string) {
     return this.webhookDlqService.findOne(id);
   }

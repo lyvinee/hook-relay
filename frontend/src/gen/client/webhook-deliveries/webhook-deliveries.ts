@@ -21,7 +21,12 @@ import type {
 import * as axios from "axios";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 
-import type { ApiErrorDto, ListWebhookDeliveriesParams } from ".././model";
+import type {
+  ApiErrorDto,
+  ListWebhookDeliveriesParams,
+  PaginatedWebhookDeliveryResponseDto,
+  WebhookDeliveryDto,
+} from ".././model";
 
 /**
  * Fetches a paginated history of webhook delivery attempts, including status and timestamps.
@@ -30,7 +35,7 @@ import type { ApiErrorDto, ListWebhookDeliveriesParams } from ".././model";
 export const listWebhookDeliveries = (
   params?: ListWebhookDeliveriesParams,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedWebhookDeliveryResponseDto>> => {
   return axios.default.get(`/webhook-deliveries`, {
     ...options,
     params: { ...params, ...options?.params },
@@ -194,7 +199,7 @@ export function useListWebhookDeliveries<
 export const getWebhookDeliveryById = (
   id: string,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<WebhookDeliveryDto>> => {
   return axios.default.get(`/webhook-deliveries/${id}`, options);
 };
 

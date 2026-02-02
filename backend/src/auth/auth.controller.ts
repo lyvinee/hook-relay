@@ -18,7 +18,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     @Inject() private readonly config: EnvDto,
-  ) {}
+  ) { }
 
   @Post("login")
   @ApiOperation({
@@ -100,5 +100,31 @@ export class AuthController {
     }
 
     return req.user;
+  }
+
+  @Post("logout")
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: "Logout user",
+    description: "Invalidates the current session and clears the refresh token cookie.",
+    operationId: "authLogout",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Logout successful",
+  })
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const authSessionId = (req as any).authSessionId;
+    if (authSessionId) {
+      await this.authService.logout(authSessionId);
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: this.config.NODE_ENV === Environment.Production,
+      sameSite: this.config.NODE_ENV === Environment.Production ? "none" : "lax",
+    });
+
+    return { success: true };
   }
 }

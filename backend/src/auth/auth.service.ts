@@ -21,7 +21,7 @@ export class AuthService {
     private readonly pwdHasher: PasswordHasher,
     @Inject() private readonly config: EnvDto,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.db.query.users.findFirst({
@@ -187,5 +187,12 @@ export class AuthService {
       role: session.user.role,
       email: session.user.email,
     };
+  }
+
+  async logout(authSessionId: string): Promise<void> {
+    await this.db
+      .update(schema.authSessions)
+      .set({ status: "revoked" })
+      .where(eq(schema.authSessions.authSessionId, authSessionId));
   }
 }

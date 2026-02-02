@@ -8,7 +8,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // FIXME: This is written to disable security for development/testing purposes. Remove this when moving to prod.
@@ -31,6 +31,7 @@ export class AuthGuard implements CanActivate {
       const user = await this.authService.validateSession(payload.authSessionId);
 
       request.user = user;
+      (request as any).authSessionId = payload.authSessionId;
     } catch {
       throw new UnauthorizedException();
     }

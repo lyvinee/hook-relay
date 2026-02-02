@@ -2,8 +2,10 @@ import { Controller, Get, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs
 import { WebhookDeliveriesService } from "./webhook-delivery.service";
 import { ListWebhookDeliveriesDto } from "./dto/list-webhook-deliveries.dto";
 import { AuthGuard } from "@/common/guards/auth.guard";
-import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from "@nestjs/swagger";
 import { ApiStandardResponse } from "@/common/decorators/api-standard-response.decorator";
+import { PaginatedWebhookDeliveryResponseDto } from "./dto/paginated-webhook-delivery-response.dto";
+import { WebhookDeliveryDto } from "./dto/webhook-delivery.dto";
 
 @ApiTags("Webhook Deliveries")
 @ApiBearerAuth()
@@ -11,7 +13,7 @@ import { ApiStandardResponse } from "@/common/decorators/api-standard-response.d
 @Controller("webhook-deliveries")
 @UseGuards(AuthGuard)
 export class WebhookDeliveriesController {
-  constructor(private readonly webhookDeliveriesService: WebhookDeliveriesService) {}
+  constructor(private readonly webhookDeliveriesService: WebhookDeliveriesService) { }
 
   @Get()
   @ApiOperation({
@@ -19,6 +21,7 @@ export class WebhookDeliveriesController {
     description: "Fetches a paginated history of webhook delivery attempts, including status and timestamps.",
     operationId: "listWebhookDeliveries",
   })
+  @ApiResponse({ status: 200, description: "Return paginated webhook deliveries.", type: PaginatedWebhookDeliveryResponseDto })
   findAll(@Query() query: ListWebhookDeliveriesDto) {
     return this.webhookDeliveriesService.findAll(query);
   }
@@ -29,6 +32,7 @@ export class WebhookDeliveriesController {
     description: "Retrieves detailed information about a specific webhook delivery attempt.",
     operationId: "getWebhookDeliveryById",
   })
+  @ApiResponse({ status: 200, description: "Return the webhook delivery.", type: WebhookDeliveryDto })
   findOne(@Param("id", ParseUUIDPipe) id: string) {
     return this.webhookDeliveriesService.findOne(id);
   }

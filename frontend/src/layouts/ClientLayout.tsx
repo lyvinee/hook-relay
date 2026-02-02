@@ -1,8 +1,26 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router';
+import { Outlet, Link, useNavigate } from 'react-router';
 import { navigations } from '../config/navigation';
+import { useAuthLogout } from '../gen/client/auth/auth';
+import { useAuthStore } from '../store/authStore';
 
 const ClientLayout: React.FC = () => {
+    const navigate = useNavigate();
+    const { logout: logoutStore } = useAuthStore();
+    const logout = useAuthLogout({
+        mutation: {
+            onSuccess: () => {
+                logoutStore();
+                navigate(navigations.login);
+            },
+            onError: () => {
+                // Logout locally even if API fails
+                logoutStore();
+                navigate(navigations.login);
+            }
+        }
+    });
+
     return (
         <div className="flex h-screen bg-base-100">
             {/* Sidebar */}
@@ -25,7 +43,13 @@ const ClientLayout: React.FC = () => {
                     <li><Link to={navigations.profile}>Profile</Link></li>
                 </ul>
                 <div className="p-4">
-                    <button className="btn btn-outline btn-sm w-full">Logout</button>
+                    <button
+                        className="btn btn-outline btn-sm w-full"
+                        onClick={() => logout.mutate()}
+                        disabled={logout.isPending}
+                    >
+                        {logout.isPending ? "Logging out..." : "Logout"}
+                    </button>
                 </div>
             </aside>
 

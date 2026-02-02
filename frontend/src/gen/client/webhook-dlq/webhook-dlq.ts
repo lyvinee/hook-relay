@@ -24,7 +24,13 @@ import type {
 import * as axios from "axios";
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 
-import type { ListWebhookDlqParams, ReplayWebhookDlqDto } from ".././model";
+import type {
+  ListWebhookDlqParams,
+  PaginatedWebhookDlqResponseDto,
+  ReplayWebhookDlqDto,
+  ReplayWebhookDlqResponseDto,
+  WebhookDlqDto,
+} from ".././model";
 
 /**
  * Retrieves a paginated list of failed webhook deliveries currently in the Dead Letter Queue.
@@ -33,7 +39,7 @@ import type { ListWebhookDlqParams, ReplayWebhookDlqDto } from ".././model";
 export const listWebhookDlq = (
   params?: ListWebhookDlqParams,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<PaginatedWebhookDlqResponseDto>> => {
   return axios.default.get(`/webhook-dlq`, {
     ...options,
     params: { ...params, ...options?.params },
@@ -46,7 +52,7 @@ export const getListWebhookDlqQueryKey = (params?: ListWebhookDlqParams) => {
 
 export const getListWebhookDlqQueryOptions = <
   TData = Awaited<ReturnType<typeof listWebhookDlq>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<PaginatedWebhookDlqResponseDto>,
 >(
   params?: ListWebhookDlqParams,
   options?: {
@@ -74,11 +80,12 @@ export const getListWebhookDlqQueryOptions = <
 export type ListWebhookDlqQueryResult = NonNullable<
   Awaited<ReturnType<typeof listWebhookDlq>>
 >;
-export type ListWebhookDlqQueryError = AxiosError<unknown>;
+export type ListWebhookDlqQueryError =
+  AxiosError<PaginatedWebhookDlqResponseDto>;
 
 export function useListWebhookDlq<
   TData = Awaited<ReturnType<typeof listWebhookDlq>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<PaginatedWebhookDlqResponseDto>,
 >(
   params: undefined | ListWebhookDlqParams,
   options: {
@@ -101,7 +108,7 @@ export function useListWebhookDlq<
 };
 export function useListWebhookDlq<
   TData = Awaited<ReturnType<typeof listWebhookDlq>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<PaginatedWebhookDlqResponseDto>,
 >(
   params?: ListWebhookDlqParams,
   options?: {
@@ -124,7 +131,7 @@ export function useListWebhookDlq<
 };
 export function useListWebhookDlq<
   TData = Awaited<ReturnType<typeof listWebhookDlq>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<PaginatedWebhookDlqResponseDto>,
 >(
   params?: ListWebhookDlqParams,
   options?: {
@@ -143,7 +150,7 @@ export function useListWebhookDlq<
 
 export function useListWebhookDlq<
   TData = Awaited<ReturnType<typeof listWebhookDlq>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<PaginatedWebhookDlqResponseDto>,
 >(
   params?: ListWebhookDlqParams,
   options?: {
@@ -174,7 +181,7 @@ export const replayWebhookDlq = (
   id: string,
   replayWebhookDlqDto: ReplayWebhookDlqDto,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<ReplayWebhookDlqResponseDto>> => {
   return axios.default.post(
     `/webhook-dlq/${id}/replay`,
     replayWebhookDlqDto,
@@ -183,7 +190,7 @@ export const replayWebhookDlq = (
 };
 
 export const getReplayWebhookDlqMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = AxiosError<ReplayWebhookDlqResponseDto>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -224,13 +231,14 @@ export type ReplayWebhookDlqMutationResult = NonNullable<
   Awaited<ReturnType<typeof replayWebhookDlq>>
 >;
 export type ReplayWebhookDlqMutationBody = ReplayWebhookDlqDto;
-export type ReplayWebhookDlqMutationError = AxiosError<unknown>;
+export type ReplayWebhookDlqMutationError =
+  AxiosError<ReplayWebhookDlqResponseDto>;
 
 /**
  * @summary Retry failed delivery
  */
 export const useReplayWebhookDlq = <
-  TError = AxiosError<unknown>,
+  TError = AxiosError<ReplayWebhookDlqResponseDto>,
   TContext = unknown,
 >(
   options?: {
@@ -258,7 +266,7 @@ export const useReplayWebhookDlq = <
 export const getWebhookDlqById = (
   id: string,
   options?: AxiosRequestConfig,
-): Promise<AxiosResponse<void>> => {
+): Promise<AxiosResponse<WebhookDlqDto>> => {
   return axios.default.get(`/webhook-dlq/${id}`, options);
 };
 
@@ -268,7 +276,7 @@ export const getGetWebhookDlqByIdQueryKey = (id?: string) => {
 
 export const getGetWebhookDlqByIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getWebhookDlqById>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<WebhookDlqDto>,
 >(
   id: string,
   options?: {
@@ -305,11 +313,11 @@ export const getGetWebhookDlqByIdQueryOptions = <
 export type GetWebhookDlqByIdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getWebhookDlqById>>
 >;
-export type GetWebhookDlqByIdQueryError = AxiosError<unknown>;
+export type GetWebhookDlqByIdQueryError = AxiosError<WebhookDlqDto>;
 
 export function useGetWebhookDlqById<
   TData = Awaited<ReturnType<typeof getWebhookDlqById>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<WebhookDlqDto>,
 >(
   id: string,
   options: {
@@ -336,7 +344,7 @@ export function useGetWebhookDlqById<
 };
 export function useGetWebhookDlqById<
   TData = Awaited<ReturnType<typeof getWebhookDlqById>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<WebhookDlqDto>,
 >(
   id: string,
   options?: {
@@ -363,7 +371,7 @@ export function useGetWebhookDlqById<
 };
 export function useGetWebhookDlqById<
   TData = Awaited<ReturnType<typeof getWebhookDlqById>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<WebhookDlqDto>,
 >(
   id: string,
   options?: {
@@ -386,7 +394,7 @@ export function useGetWebhookDlqById<
 
 export function useGetWebhookDlqById<
   TData = Awaited<ReturnType<typeof getWebhookDlqById>>,
-  TError = AxiosError<unknown>,
+  TError = AxiosError<WebhookDlqDto>,
 >(
   id: string,
   options?: {

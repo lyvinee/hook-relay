@@ -14,6 +14,7 @@ import DashboardOverview from '../pages/dashboard/DashboardOverview';
 import DeliveryDetail from '../pages/deliveries/DeliveryDetail';
 import DeliveryList from '../pages/deliveries/DeliveryList';
 import DlqList from '../pages/dlq/DlqList';
+import DlqDetail from '../pages/dlq/DlqDetail';
 import EventDetail from '../pages/events/EventDetail';
 import EventCreate from "../pages/events/EventCreate";
 import TopicList from "../pages/topics/TopicList";
@@ -88,7 +89,10 @@ const router = createBrowserRouter([
                     },
                     {
                         path: 'dlq',
-                        element: <DlqList />,
+                        children: [
+                            { index: true, element: <DlqList /> },
+                            { path: ':id', element: <DlqDetail /> },
+                        ]
                     },
                     {
                         path: 'clients',

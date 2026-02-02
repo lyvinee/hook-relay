@@ -1,8 +1,26 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router';
+import { Outlet, Link, useNavigate } from 'react-router';
 import { navigations } from '../config/navigation';
+import { useAuthLogout } from '../gen/client/auth/auth';
+import { useAuthStore } from '../store/authStore';
 
 const AdminLayout: React.FC = () => {
+    const navigate = useNavigate();
+    const { logout: logoutStore } = useAuthStore();
+    const logout = useAuthLogout({
+        mutation: {
+            onSuccess: () => {
+                logoutStore();
+                navigate(navigations.login);
+            },
+            onError: () => {
+                // Logout locally even if API fails
+                logoutStore();
+                navigate(navigations.login);
+            }
+        }
+    });
+
     return (
         <div className="flex h-screen bg-base-100">
             {/* Sidebar */}
@@ -10,7 +28,7 @@ const AdminLayout: React.FC = () => {
                 <div className="p-4 text-xl font-bold text-primary">Hook Relay Admin</div>
                 <ul className="menu p-4 w-full flex-1">
                     {/* Dashboard */}
-                    <li><Link to={navigations.dashboard}>Dashboard (View as Client)</Link></li>
+                    <li><Link to={navigations.dashboard}>Dashboard</Link></li>
 
                     {/* Admin Management */}
                     <div className="divider text-xs">Administration</div>
@@ -26,7 +44,13 @@ const AdminLayout: React.FC = () => {
                     <li><Link to={navigations.dlq}>DLQ</Link></li>
                 </ul>
                 <div className="p-4">
-                    <button className="btn btn-outline btn-sm w-full">Logout</button>
+                    <button
+                        className="btn btn-outline btn-sm w-full"
+                        onClick={() => logout.mutate()}
+                        disabled={logout.isPending}
+                    >
+                        {logout.isPending ? "Logging out..." : "Logout"}
+                    </button>
                 </div>
             </aside>
 

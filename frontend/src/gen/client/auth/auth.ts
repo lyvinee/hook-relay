@@ -319,3 +319,81 @@ export function useAuthGetMe<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Invalidates the current session and clears the refresh token cookie.
+ * @summary Logout user
+ */
+export const authLogout = (
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<void>> => {
+  return axios.default.post(`/auth/logout`, undefined, options);
+};
+
+export const getAuthLogoutMutationOptions = <
+  TError = AxiosError<ApiErrorDto>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof authLogout>>,
+    TError,
+    void,
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof authLogout>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["authLogout"];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof authLogout>>,
+    void
+  > = () => {
+    return authLogout(axiosOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AuthLogoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof authLogout>>
+>;
+
+export type AuthLogoutMutationError = AxiosError<ApiErrorDto>;
+
+/**
+ * @summary Logout user
+ */
+export const useAuthLogout = <
+  TError = AxiosError<ApiErrorDto>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof authLogout>>,
+      TError,
+      void,
+      TContext
+    >;
+    axios?: AxiosRequestConfig;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof authLogout>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getAuthLogoutMutationOptions(options), queryClient);
+};
